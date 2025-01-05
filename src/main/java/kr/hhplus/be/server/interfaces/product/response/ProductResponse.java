@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.interfaces.product.response;
 
+import kr.hhplus.be.server.domain.product.dto.ProductInfo;
+import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
 import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import lombok.*;
@@ -14,12 +16,12 @@ public class ProductResponse {
     private Integer price;
     private Integer remainingStock;
 
-    public static ProductResponse of(Product product, Stock stock) {
+    public static ProductResponse from(ProductInfo info) {
         return ProductResponse.builder()
-                .productId(product.getId())
-                .productName(product.getProductName())
-                .price(product.getPrice())
-                .remainingStock(stock.getRemainingStock())
+                .productId(info.getProductId())
+                .productName(info.getProductName())
+                .price(info.getPrice())
+                .remainingStock(info.getRemainingStock())
                 .build();
     }
 }
