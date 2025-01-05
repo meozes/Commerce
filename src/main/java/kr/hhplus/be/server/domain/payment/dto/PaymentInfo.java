@@ -1,6 +1,5 @@
-package kr.hhplus.be.server.interfaces.payment.response;
+package kr.hhplus.be.server.domain.payment.dto;
 
-import kr.hhplus.be.server.domain.payment.dto.PaymentInfo;
 import kr.hhplus.be.server.domain.payment.entity.Payment;
 import kr.hhplus.be.server.domain.payment.entity.PaymentStatusType;
 import lombok.*;
@@ -9,20 +8,20 @@ import lombok.*;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
-public class PaymentResponse {
+public class PaymentInfo {
     private Long paymentId;
     private Long orderId;
     private Long userId;
     private Integer amount;
     private PaymentStatusType status;
 
-    public static PaymentResponse of(PaymentInfo payment) {
-        return PaymentResponse.builder()
-                .paymentId(payment.getPaymentId())
-                .orderId(payment.getOrderId())
+    public static PaymentInfo of(Payment payment) {
+        return PaymentInfo.builder()
+                .paymentId(payment.getId())
+                .orderId(payment.getOrder().getId())
                 .userId(payment.getUserId())
                 .amount(payment.getAmount())
-                .status(payment.getStatus())
+                .status(payment.getPaymentStatus())
                 .build();
     }
 }
