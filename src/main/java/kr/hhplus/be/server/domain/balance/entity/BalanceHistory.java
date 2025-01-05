@@ -21,8 +21,6 @@ public class BalanceHistory extends BaseTimeEntity {
 
     private Long balanceId;
 
-    private Long userId;
-
     private TransactionType type;
 
     private Integer amount;
