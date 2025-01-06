@@ -36,18 +36,10 @@ public class PaymentController {
             @Parameter(description = "결제 요청 정보")
             @Valid @RequestBody PaymentRequest request
     ){
-        Order order = Order.builder()
-                .id(1L)
-                .userId(request.getUserId())
-                .originalAmount(50000)
-                .discountAmount(5000)
-                .finalAmount(45000)
-                .orderStatus(OrderStatusType.PENDING)
-                .build();
 
         PaymentCommand command = PaymentCommand.from(request);
         PaymentInfo paymentInfo = paymentService.createPayment(command);
-        return ApiResponse.ok(PaymentResponse.of(paymentInfo));
+        return ApiResponse.ok(PaymentResponse.from(paymentInfo));
 
     }
 }

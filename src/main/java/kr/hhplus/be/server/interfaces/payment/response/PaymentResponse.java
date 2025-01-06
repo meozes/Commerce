@@ -7,16 +7,14 @@ import lombok.*;
 
 @Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentResponse {
-    private Long paymentId;
-    private Long orderId;
-    private Long userId;
-    private Integer amount;
-    private PaymentStatusType status;
+    private final Long paymentId;
+    private final Long orderId;
+    private final Long userId;
+    private final Integer amount;
+    private final PaymentStatusType status;
 
-    public static PaymentResponse of(PaymentInfo payment) {
+    public static PaymentResponse from(PaymentInfo payment) {
         return PaymentResponse.builder()
                 .paymentId(payment.getPaymentId())
                 .orderId(payment.getOrderId())
