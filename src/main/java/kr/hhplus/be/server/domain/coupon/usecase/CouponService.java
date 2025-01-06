@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.coupon.usecase;
 
+import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
 import kr.hhplus.be.server.domain.coupon.dto.CouponSearch;
@@ -41,6 +42,7 @@ public class CouponService {
 
     }
 
+    @Transactional
     public CouponInfo issueCoupon(CouponCommand command) {
         if (command.getUserId() < 0) {
             throw new IllegalArgumentException("유효하지 않은 유저 ID 입니다.");
