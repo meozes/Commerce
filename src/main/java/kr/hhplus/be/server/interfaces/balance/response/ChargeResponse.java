@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.interfaces.balance.response;
 
+import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -12,14 +13,14 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class ChargeResponse {
     private Long userId;
-    private Integer balance;
+    private Integer amount;
     private Integer chargedAmount;
 
-    public static ChargeResponse of(Balance balance, Integer amount){
+    public static ChargeResponse of(BalanceInfo info, Integer chargeAmount){
         return ChargeResponse.builder()
-                .userId(balance.getUserId())
-                .balance(balance.getBalance())
-                .chargedAmount(amount)
+                .userId(info.getUserId())
+                .amount(info.getBalance())
+                .chargedAmount(chargeAmount)
                 .build();
     }
 }
