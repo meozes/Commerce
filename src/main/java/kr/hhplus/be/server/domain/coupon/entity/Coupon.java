@@ -29,4 +29,11 @@ public class Coupon extends BaseTimeEntity { //비관적 락
     private Integer remainingQuantity;
 
     private LocalDate dueDate;
+
+    public void issue() {
+        if (this.remainingQuantity <= 0) {
+            throw new IllegalArgumentException("쿠폰이 모두 소진되었습니다. id=" + this.id);
+        }
+        this.remainingQuantity--;
+    }
 }
