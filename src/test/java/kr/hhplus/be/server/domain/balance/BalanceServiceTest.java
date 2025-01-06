@@ -1,11 +1,11 @@
-package kr.hhplus.be.server.domain;
+package kr.hhplus.be.server.domain.balance;
 
 import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
 import kr.hhplus.be.server.domain.balance.dto.ChargeCommand;
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.entity.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.entity.TransactionType;
+import kr.hhplus.be.server.domain.balance.type.TransactionType;
 import kr.hhplus.be.server.domain.balance.repository.BalanceHistoryRepository;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;

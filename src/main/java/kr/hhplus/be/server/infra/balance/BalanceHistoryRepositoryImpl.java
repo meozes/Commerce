@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.infra.balance;
 
 import kr.hhplus.be.server.domain.balance.entity.BalanceHistory;
-import kr.hhplus.be.server.domain.balance.entity.TransactionType;
+import kr.hhplus.be.server.domain.balance.type.TransactionType;
 import kr.hhplus.be.server.domain.balance.repository.BalanceHistoryRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;

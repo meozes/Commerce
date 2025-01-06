@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.payment.dto;
 
 import kr.hhplus.be.server.domain.payment.entity.Payment;
-import kr.hhplus.be.server.domain.payment.entity.PaymentStatusType;
+import kr.hhplus.be.server.domain.payment.type.PaymentStatusType;
 import lombok.*;
 
 @Getter

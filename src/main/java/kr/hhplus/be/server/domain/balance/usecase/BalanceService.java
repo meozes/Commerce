@@ -5,7 +5,7 @@ import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
 import kr.hhplus.be.server.domain.balance.dto.ChargeCommand;
 import kr.hhplus.be.server.domain.balance.entity.Balance;
-import kr.hhplus.be.server.domain.balance.entity.TransactionType;
+import kr.hhplus.be.server.domain.balance.type.TransactionType;
 import kr.hhplus.be.server.domain.balance.repository.BalanceHistoryRepository;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import lombok.RequiredArgsConstructor;
@@ -44,6 +44,11 @@ public class BalanceService {
                 TransactionType.CHARGE,
                 command.getChargeAmount()
         );
+        return BalanceInfo.of(balance);
+    }
+
+    public BalanceInfo createBalance(BalanceQuery balanceQuery) {
+        Balance balance = balanceRepository.createBalance(balanceQuery.getUserId());
         return BalanceInfo.of(balance);
     }
 }

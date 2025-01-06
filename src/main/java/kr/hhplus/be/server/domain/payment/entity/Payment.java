@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.payment.entity;
 import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.domain.order.entity.Order;
+import kr.hhplus.be.server.domain.payment.type.PaymentStatusType;
 import lombok.*;
 
 @Entity

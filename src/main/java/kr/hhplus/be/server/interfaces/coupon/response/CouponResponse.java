@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.interfaces.coupon.response;
 
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
-import kr.hhplus.be.server.domain.coupon.entity.CouponStatusType;
+import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import lombok.*;
 import org.springframework.data.domain.Page;
 

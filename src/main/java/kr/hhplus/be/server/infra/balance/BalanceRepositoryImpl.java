@@ -29,4 +29,13 @@ public interface BalanceRepositoryImpl extends JpaRepository<Balance, Long>, Bal
         return save(balance);
     }
 
+    @Override
+    default Balance createBalance(Long userId) {
+        Balance balance = Balance.builder()
+                .userId(userId)
+                .balance(0)
+                .build();
+        return save(balance);
+    }
+
 }

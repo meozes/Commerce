@@ -54,9 +54,9 @@ public class ProductService {
                 ProductInfo.of(product, stockMap.get(product.getId())));
     }
 
-    public List<ProductRankInfo> getTopProducts() {
-
-    }
+//    public List<ProductRankInfo> getTopProducts() {
+//
+//    }
 
 //    public List<ProductRankInfo> getTopProducts() {
 //        LocalDateTime today = LocalDateTime.now();

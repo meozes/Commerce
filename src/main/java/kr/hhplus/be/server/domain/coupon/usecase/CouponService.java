@@ -5,7 +5,7 @@ import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
 import kr.hhplus.be.server.domain.coupon.dto.CouponSearch;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
-import kr.hhplus.be.server.domain.coupon.entity.CouponStatusType;
+import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
@@ -14,7 +14,6 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 
 @Service
@@ -39,7 +38,11 @@ public class CouponService {
                     .issuedCoupon(issuedCoupon)
                     .build();
         });
+    }
 
+    public IssuedCoupon getIssuedCoupon(Long issueCouponId) {
+        IssuedCoupon coupon = issuedCouponRepository.getIssuedCoupon(issueCouponId);
+        return coupon;
     }
 
     @Transactional
@@ -73,5 +76,9 @@ public class CouponService {
                .issuedCoupon(issuedCoupon)
                .build();
 
+    }
+
+    public void saveIssuedCoupon(IssuedCoupon coupon) {
+        issuedCouponRepository.saveIssuedCoupon(coupon);
     }
 }
