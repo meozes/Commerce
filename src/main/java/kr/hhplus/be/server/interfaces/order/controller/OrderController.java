@@ -34,17 +34,7 @@ public class OrderController {
             @Parameter(description = "주문 요청 정보")
             @Valid @RequestBody OrderRequest request
     ) {
-        OrderCommand command = OrderCommand.builder()
-                .userId(request.getUserId())
-                .orderItems(request.getItems().stream()
-                        .map(item -> new OrderCommand.OrderItemCommand(
-                                item.getProductId(),
-                                item.getQuantity(),
-                                item.getPrice()))
-                        .collect(Collectors.toList()))
-                .couponId(request.getCouponId())
-                .build();
-
+        OrderCommand command = OrderCommand.from(request);
         OrderInfo info = orderService.createOrder(command);
         return ApiResponse.ok(OrderResponse.of(info.getOrder(), info.getOrderItems()));
     }

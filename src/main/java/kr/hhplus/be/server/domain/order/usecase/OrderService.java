@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.order.usecase;
 
+import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
 import kr.hhplus.be.server.domain.order.entity.Order;
@@ -20,6 +21,7 @@ public class OrderService {
     private final OrderRepository orderRepository;
     private final OrderItemRepository orderItemRepository;
 
+    @Transactional
     public OrderInfo createOrder(OrderCommand command) {
 
         if (command.getUserId() < 0) {
@@ -33,6 +35,9 @@ public class OrderService {
                 .mapToInt(item -> item.getPrice() * item.getQuantity())
                 .sum();
 
+        //1. 재고 확인
+
+        //2. 쿠폰 확인, 사용처리
         Integer discountAmount = 0; // 실제로는 쿠폰 서비스를 통해 계산
         Integer finalAmount = originalAmount - discountAmount; // 최종금액
 

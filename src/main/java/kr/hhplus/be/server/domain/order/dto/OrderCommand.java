@@ -1,8 +1,11 @@
 package kr.hhplus.be.server.domain.order.dto;
 
+import kr.hhplus.be.server.interfaces.order.request.OrderItemRequest;
+import kr.hhplus.be.server.interfaces.order.request.OrderRequest;
 import lombok.*;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Getter
 @Builder
@@ -11,17 +14,13 @@ public class OrderCommand {
     private final List<OrderItemCommand> orderItems;
     private final Long couponId;
 
-    @Getter
-    public static class OrderItemCommand {
-        private final Long productId;
-        private final Integer quantity;
-        private final Integer price;
-
-
-        public OrderItemCommand(Long productId, Integer quantity, Integer price) {
-            this.productId = productId;
-            this.quantity = quantity;
-            this.price = price;
-        }
+    public static OrderCommand from(OrderRequest request) {
+        return OrderCommand.builder()
+                .userId(request.getUserId())
+                .orderItems(request.getItems().stream()
+                        .map(OrderItemCommand::from)
+                        .collect(Collectors.toList()))
+                .couponId(request.getCouponId())
+                .build();
     }
 }

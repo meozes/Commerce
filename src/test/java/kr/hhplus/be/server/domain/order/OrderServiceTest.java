@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.order;
 
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
+import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.entity.OrderStatusType;
@@ -36,7 +37,7 @@ class OrderServiceTest {
     private OrderService orderService;
 
     private OrderCommand createOrderCommand(Long userId, Long couponId,
-                                            List<OrderCommand.OrderItemCommand> orderItems) {
+                                            List<OrderItemCommand> orderItems) {
         return OrderCommand.builder()
                 .userId(userId)
                 .orderItems(orderItems)
@@ -84,9 +85,9 @@ class OrderServiceTest {
     @DisplayName("쿠폰 없음 - 주문 생성 성공")
     void createOrder_Success() {
         // given
-        List<OrderCommand.OrderItemCommand> commandItems = List.of(
-                new OrderCommand.OrderItemCommand(1L, 2, 10000),
-                new OrderCommand.OrderItemCommand(2L, 1, 15000)
+        List<OrderItemCommand> commandItems = List.of(
+                new OrderItemCommand(1L, 2, 10000),
+                new OrderItemCommand(2L, 1, 15000)
         );
         OrderCommand command = createOrderCommand(1L, null, commandItems);
 
@@ -125,9 +126,9 @@ class OrderServiceTest {
     @DisplayName("쿠폰 있음 - 주문 생성 성공")
     void createOrder_withCoupon() {
         // given
-        List<OrderCommand.OrderItemCommand> commandItems = List.of(
-                new OrderCommand.OrderItemCommand(1L, 2, 10000),
-                new OrderCommand.OrderItemCommand(2L, 1, 15000)
+        List<OrderItemCommand> commandItems = List.of(
+                new OrderItemCommand(1L, 2, 10000),
+                new OrderItemCommand(2L, 1, 15000)
         );
         OrderCommand command = createOrderCommand(1L, 1L, commandItems); // couponId 1L 추가
 
@@ -166,7 +167,7 @@ class OrderServiceTest {
     @DisplayName("상품 목록 없음 - 주문 생성 실패")
     void createOrder_emptyOrderItems() {
         // given
-        List<OrderCommand.OrderItemCommand> emptyCommandItems = List.of();
+        List<OrderItemCommand> emptyCommandItems = List.of();
         OrderCommand command = createOrderCommand(1L, null, emptyCommandItems);
 
         // when & then
@@ -184,9 +185,9 @@ class OrderServiceTest {
     @DisplayName("userId < 0 - 주문 생성 실패")
     void createOrder_invalidUserId() {
         // given
-        List<OrderCommand.OrderItemCommand> commandItems = List.of(
-                new OrderCommand.OrderItemCommand(1L, 2, 10000),
-                new OrderCommand.OrderItemCommand(2L, 1, 15000)
+        List<OrderItemCommand> commandItems = List.of(
+                new OrderItemCommand(1L, 2, 10000),
+                new OrderItemCommand(2L, 1, 15000)
         );
         OrderCommand command = createOrderCommand(-1L, null, commandItems); // 음수 userId
 
