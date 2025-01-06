@@ -22,6 +22,7 @@ import org.springframework.data.domain.Sort;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -46,8 +47,9 @@ class ProductServiceTest {
     @DisplayName("상품 조회 성공")
     void getProducts_Success() {
         // given
-        PageRequest pageRequest = PageRequest.of(0, 10, Sort.by("id"));
-        ProductSearchQuery query = new ProductSearchQuery(0, 10, "id");
+
+        ProductSearchQuery query = ProductSearchQuery.of(0, 10);
+        PageRequest pageRequest = query.toPageRequest();  // PageRequest 생성
 
         Product product1 = new Product(1L, "촉촉한 쿠키", 5000);
         Product product2 = new Product(2L, "촉촉한 우유", 10000);
@@ -59,8 +61,8 @@ class ProductServiceTest {
 
         Page<Product> productPage = new PageImpl<>(products, pageRequest, products.size());
 
-        when(productRepository.findAll(any(PageRequest.class))).thenReturn(productPage);
-        when(stockRepository.findByProductId(anyList())).thenReturn(stocks);
+        when(productRepository.getProducts(any(PageRequest.class))).thenReturn(productPage);
+        when(stockRepository.getStocks(anyList())).thenReturn(stocks);
 
         // when
         Page<ProductInfo> result = productService.getProducts(query);
@@ -76,8 +78,8 @@ class ProductServiceTest {
                 () -> assertEquals(stock2.getRemainingStock(), result.getContent().get(1).getRemainingStock())
         );
 
-        verify(productRepository).findAll(any(PageRequest.class));
-        verify(stockRepository).findByProductId(anyList());
+        verify(productRepository).getProducts(any(PageRequest.class));
+        verify(stockRepository).getStocks(anyList());
     }
 
     @Test
@@ -85,13 +87,13 @@ class ProductServiceTest {
     void getProduct_Success() {
         // given
         Long productId = 1L;
-        ProductSearch productSearch = new ProductSearch(productId);
+        ProductSearch productSearch = ProductSearch.of(productId);
 
         Product product = new Product(productId, "촉촉한 쿠키", 5000);
         Stock stock = new Stock(1L, product, 100, 30);
 
-        when(productRepository.findById(productId)).thenReturn(product);
-        when(stockRepository.findByProductId(productId)).thenReturn(stock);
+        when(productRepository.getProduct(productId)).thenReturn(Optional.of(product));
+        when(stockRepository.getStock(productId)).thenReturn(stock);
 
         // when
         ProductInfo result = productService.getProduct(productSearch);
@@ -104,14 +106,14 @@ class ProductServiceTest {
                 () -> assertEquals(stock.getRemainingStock(), result.getRemainingStock())
         );
 
-        verify(productRepository).findById(productId);
-        verify(stockRepository).findByProductId(productId);
+        verify(productRepository).getProduct(productId);
+        verify(stockRepository).getStock(productId);
     }
 
     @Test
     @DisplayName("유효하지 않은 상품 ID - 조회 실패")
     void getProduct_InvalidProductId() {
-        ProductSearch productSearch = new ProductSearch(-1L);
+        ProductSearch productSearch = ProductSearch.of(-1L);
 
         assertThrows(IllegalArgumentException.class,
                 () -> productService.getProduct(productSearch));

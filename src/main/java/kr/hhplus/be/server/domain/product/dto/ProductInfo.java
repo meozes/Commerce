@@ -6,7 +6,6 @@ import lombok.*;
 
 @Getter
 @Builder
-@RequiredArgsConstructor
 public class ProductInfo {
     private final Long productId;
     private final String productName;

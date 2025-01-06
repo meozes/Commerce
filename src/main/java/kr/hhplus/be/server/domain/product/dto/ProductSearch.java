@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.domain.product.dto;
 
-import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
-import lombok.RequiredArgsConstructor;
+
 
 @Getter
-@AllArgsConstructor
+@Builder
 public class ProductSearch {
     private final Long productId;
 

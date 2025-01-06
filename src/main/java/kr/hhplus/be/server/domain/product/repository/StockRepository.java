@@ -6,6 +6,6 @@ import java.util.Collection;
 import java.util.List;
 
 public interface StockRepository {
-    Stock findByProductId(Long productId);
-    List<Stock> findByProductId(Collection<Long> productIds);
+    Stock getStock(Long productId);
+    List<Stock> getStocks(Collection<Long> productIds);
 }

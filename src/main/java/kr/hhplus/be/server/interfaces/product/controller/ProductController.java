@@ -7,21 +7,16 @@ import kr.hhplus.be.server.domain.product.dto.ProductInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductSearch;
 import kr.hhplus.be.server.domain.product.dto.ProductSearchQuery;
-import kr.hhplus.be.server.domain.product.entity.Product;
-import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.usecase.ProductService;
 import kr.hhplus.be.server.interfaces.common.ApiResponse;
 import kr.hhplus.be.server.interfaces.product.response.ProductResponse;
 
+import kr.hhplus.be.server.interfaces.product.response.TopProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.PageRequest;
-import org.springframework.data.domain.Sort;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
-import java.util.Arrays;
+
 import java.util.List;
 
 @Tag(name = "상품 API", description = "상품 조회 API")
@@ -48,22 +43,20 @@ public class ProductController {
     @GetMapping()
     public ApiResponse<Page<ProductResponse>> getProducts(
             @RequestParam(name = "page", defaultValue = "0") int page,
-            @RequestParam(name = "size", defaultValue = "10") int size,
-            @RequestParam(name = "sort", defaultValue = "id") String sort
+            @RequestParam(name = "size", defaultValue = "10") int size
     ) {
-        ProductSearchQuery query = new ProductSearchQuery(page, size, sort);
+        ProductSearchQuery query = ProductSearchQuery.of(page, size);
         Page<ProductInfo> productInfos = productService.getProducts(query);
         Page<ProductResponse> responses = productInfos.map(ProductResponse::from);
         return ApiResponse.ok(responses);
     }
 
 
-//    @Operation(summary = "3일간 인기 5상품 조회", description = "3일간의 인기있는 상품 다섯개를 조회합니다.")
-//    @GetMapping("/top")
-//    public ApiResponse<Top5ProductResponse> getTop5Products()
-//    {
-//
-//        List<ProductRankInfo> info = productService.getTopProducts();
-//        return ApiResponse.ok(Top5ProductResponse.of(info));
-//    }
+    @Operation(summary = "3일간 인기 5상품 조회", description = "3일간의 인기있는 상품 다섯개를 조회합니다.")
+    @GetMapping("/top")
+    public ApiResponse<TopProductResponse> getTop5Products()
+    {
+        List<ProductRankInfo> info = productService.getTopProducts();
+        return ApiResponse.ok(TopProductResponse.of(info));
+    }
 }

@@ -6,14 +6,12 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductRankInfo {
-    private Integer rank;
-    private Long productId;
-    private String productName;
-    private Integer totalQuantitySold;
-    private Integer price;
+    private final Integer rank;
+    private final Long productId;
+    private final String productName;
+    private final Integer totalQuantitySold;
+    private final Integer price;
 
     private LocalDateTime startDate;
     private LocalDateTime endDate;

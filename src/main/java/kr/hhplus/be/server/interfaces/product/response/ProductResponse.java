@@ -1,20 +1,15 @@
 package kr.hhplus.be.server.interfaces.product.response;
 
 import kr.hhplus.be.server.domain.product.dto.ProductInfo;
-import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
-import kr.hhplus.be.server.domain.product.entity.Product;
-import kr.hhplus.be.server.domain.product.entity.Stock;
 import lombok.*;
 
 @Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class ProductResponse {
-    private Long productId;
-    private String productName;
-    private Integer price;
-    private Integer remainingStock;
+    private final Long productId;
+    private final String productName;
+    private final Integer price;
+    private final Integer remainingStock;
 
     public static ProductResponse from(ProductInfo info) {
         return ProductResponse.builder()

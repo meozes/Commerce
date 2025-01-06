@@ -29,16 +29,16 @@ public class ProductService {
         if (productSearch.getProductId() < 0){
             throw new IllegalArgumentException("유효하지 않은 상품 ID 입니다.");
         }
-        Product product = productRepository.findById(productSearch.getProductId());
-        Stock stock = stockRepository.findByProductId(productSearch.getProductId());
+        Product product = productRepository.getProduct(productSearch.getProductId()).orElseThrow();
+        Stock stock = stockRepository.getStock(productSearch.getProductId());
 
         return ProductInfo.of(product, stock);
     }
 
     public Page<ProductInfo> getProducts(ProductSearchQuery query) {
-        Page<Product> products = productRepository.findAll(query.toPageRequest());
+        Page<Product> products = productRepository.getProducts(query.toPageRequest());
 
-        List<Stock> stocks = stockRepository.findByProductId(
+        List<Stock> stocks = stockRepository.getStocks(
                 products.getContent().stream()
                         .map(Product::getId)
                         .collect(Collectors.toList())
@@ -52,6 +52,10 @@ public class ProductService {
 
         return products.map(product ->
                 ProductInfo.of(product, stockMap.get(product.getId())));
+    }
+
+    public List<ProductRankInfo> getTopProducts() {
+
     }
 
 //    public List<ProductRankInfo> getTopProducts() {
