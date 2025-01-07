@@ -3,6 +3,7 @@ package kr.hhplus.be.server.interfaces.product.controller;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import kr.hhplus.be.server.application.product.ProductFacade;
 import kr.hhplus.be.server.domain.product.dto.ProductInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductSearch;
@@ -11,7 +12,7 @@ import kr.hhplus.be.server.domain.product.usecase.ProductService;
 import kr.hhplus.be.server.interfaces.common.ApiResponse;
 import kr.hhplus.be.server.interfaces.product.response.ProductResponse;
 
-//import kr.hhplus.be.server.interfaces.product.response.TopProductResponse;
+import kr.hhplus.be.server.interfaces.product.response.TopProductResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.web.bind.annotation.*;
@@ -26,6 +27,7 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final ProductFacade productFacade;
 
     @Operation(summary = "상품 단건 조회", description = "해당 상품을 조회합니다.")
     @GetMapping("/{productId}")
@@ -52,11 +54,11 @@ public class ProductController {
     }
 
 
-//    @Operation(summary = "3일간 인기 5상품 조회", description = "3일간의 인기있는 상품 다섯개를 조회합니다.")
-//    @GetMapping("/top")
-//    public ApiResponse<TopProductResponse> getTop5Products()
-//    {
-//        List<ProductRankInfo> info = productService.getTopProducts();
-//        return ApiResponse.ok(TopProductResponse.of(info));
-//    }
+    @Operation(summary = "3일간 인기 5상품 조회", description = "3일간의 인기있는 상품 다섯개를 조회합니다.")
+    @GetMapping("/top")
+    public ApiResponse<TopProductResponse> getTop5Products()
+    {
+        List<ProductRankInfo> info = productFacade.getTopProducts();
+        return ApiResponse.ok(TopProductResponse.of(info));
+    }
 }

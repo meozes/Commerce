@@ -8,9 +8,12 @@ import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.type.OrderStatusType;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
+import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
+import kr.hhplus.be.server.domain.product.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -63,5 +66,9 @@ public class OrderService {
 
     public List<OrderItem> getOrderItems(Long orderId) {
         return orderItemRepository.getOrderItems(orderId);
+    }
+
+    public List<ProductRankInfo> getTopProductsByOrderDate(LocalDate startDate, LocalDate endDate) {
+        return orderItemRepository.findTopProductsByOrderDate(startDate, endDate);
     }
 }
