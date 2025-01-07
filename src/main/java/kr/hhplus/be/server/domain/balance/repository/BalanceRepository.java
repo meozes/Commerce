@@ -21,4 +21,6 @@ public interface BalanceRepository {
     Balance getBalanceWithLock(@Param("userId") Long userId);
 
     Balance createBalance(Long userId);
+
+    Balance deductBalance(Long userId, Integer amount);
 }

@@ -13,4 +13,6 @@ public interface OrderItemRepositoryImpl extends JpaRepository<OrderItem, Long>,
     default List<OrderItem> saveAll(List<OrderItem> orderItems) {
         return saveAllAndFlush(orderItems);
     }
+
+    List<OrderItem> findByOrderId(Long orderId);
 }

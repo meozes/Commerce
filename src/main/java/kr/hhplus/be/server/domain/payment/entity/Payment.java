@@ -26,4 +26,8 @@ public class Payment extends BaseTimeEntity {
     private Integer amount;
 
     private PaymentStatusType paymentStatus;
+
+    public void complete(PaymentStatusType type) {
+        this.paymentStatus = type;
+    }
 }

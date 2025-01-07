@@ -28,4 +28,8 @@ public class Order extends BaseTimeEntity {
 
     private OrderStatusType orderStatus;
 
+    public void complete() {
+        this.orderStatus = OrderStatusType.COMPLETED;
+    }
+
 }

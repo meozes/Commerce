@@ -52,4 +52,16 @@ public class OrderService {
                 .build();
     }
 
+    public Order getOrder(Long orderId) {
+        return orderRepository.getOrder(orderId);
+    }
+
+    public Order completeOrder(Order order) {
+        order.complete();
+        return orderRepository.save(order);
+    }
+
+    public List<OrderItem> getOrderItems(Long orderId) {
+        return orderItemRepository.getOrderItems(orderId);
+    }
 }

@@ -6,4 +6,6 @@ import java.util.List;
 
 public interface OrderItemRepository {
     List<OrderItem> saveAll(List<OrderItem> orderItems);
+
+    List<OrderItem> getOrderItems(Long orderId);
 }

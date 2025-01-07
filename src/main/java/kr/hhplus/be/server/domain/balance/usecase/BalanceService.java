@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.balance.usecase;
 
+import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
@@ -47,8 +48,36 @@ public class BalanceService {
         return BalanceInfo.of(balance);
     }
 
-    public BalanceInfo createBalance(BalanceQuery balanceQuery) {
-        Balance balance = balanceRepository.createBalance(balanceQuery.getUserId());
+    public Balance createBalance(BalanceQuery balanceQuery) {
+        return balanceRepository.createBalance(balanceQuery.getUserId());
+    }
+
+    @Transactional
+    public BalanceInfo deductBalance(Long userId, Integer amount) {
+
+        if (amount <= 0) {
+            throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다.");
+        }
+
+        Balance original = balanceRepository.getBalanceWithLock(userId);
+        if (original == null) {
+            original = createBalance(BalanceQuery.of(userId));
+        }
+
+        if (original.getBalance() < amount) {
+            throw new InsufficientBalanceException("잔액이 부족합니다.");
+        }
+
+        Balance balance = balanceRepository.deductBalance(userId, amount);
+
+        historyRepository.saveHistory(
+                original.getBalance(),
+                balance.getBalance(),
+                balance.getId(),
+                TransactionType.USE,
+                amount
+        );
+
         return BalanceInfo.of(balance);
     }
 }
