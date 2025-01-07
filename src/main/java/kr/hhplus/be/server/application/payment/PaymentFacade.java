@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
+import kr.hhplus.be.server.domain.order.service.OrderEventSender;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.domain.order.entity.Order;
@@ -12,10 +13,11 @@ import kr.hhplus.be.server.domain.payment.usecase.PaymentService;
 import kr.hhplus.be.server.domain.payment.validation.PaymentOrderValidation;
 import kr.hhplus.be.server.domain.payment.validation.PaymentProductValidation;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class PaymentFacade {
@@ -24,6 +26,7 @@ public class PaymentFacade {
     private final BalanceService balanceService;
     private final PaymentOrderValidation paymentOrderValidation;
     private final PaymentProductValidation paymentProductValidation;
+    private final OrderEventSender orderEventSender;
 
     @Transactional
     public PaymentInfo createPayment(PaymentCommand command) {
@@ -48,13 +51,17 @@ public class PaymentFacade {
             //6. 결제 완료. 결제 상태 업데이트
             paymentService.completePayment(payment, PaymentStatusType.COMPLETED);
 
-            return PaymentInfo.from(payment);
+            //7. 외부 데이터 플랫폼으로 주문 정보 전송
+            orderEventSender.send(order);
+
         } catch (InsufficientBalanceException e) {
             if (payment != null){
                 paymentService.completePayment(payment, PaymentStatusType.FAILED);
             }
             throw e;
+        } catch (RuntimeException | InterruptedException e){
+            log.error("데이터 플랫폼 주문 정보 전송 실패", e);
         }
-
+        return PaymentInfo.from(payment);
     }
 }
