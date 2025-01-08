@@ -12,7 +12,6 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-@AllArgsConstructor
 public class CouponResponse {
     private final Long couponId;
     private final String couponName;

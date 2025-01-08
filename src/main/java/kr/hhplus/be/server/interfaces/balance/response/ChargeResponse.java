@@ -9,8 +9,6 @@ import lombok.NoArgsConstructor;
 
 @Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor
 public class ChargeResponse {
     private Long userId;
     private Integer amount;

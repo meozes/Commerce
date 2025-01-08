@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.coupon.usecase;
 
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
 import kr.hhplus.be.server.domain.coupon.dto.CouponSearch;
@@ -21,18 +22,14 @@ import java.time.LocalDateTime;
 public class CouponService {
     private final CouponRepository couponRepository;
     private final IssuedCouponRepository issuedCouponRepository;
+    private final CouponValidator couponValidator;
 
     public Page<CouponInfo> getCoupons(CouponSearch couponSearch) {
-
-        if (couponSearch.getUserId() < 0) {
-            throw new IllegalArgumentException("유효하지 않은 유저 ID 입니다.");
-        }
-
+        couponValidator.validateUserId(couponSearch.getUserId());
         Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.getIssuedCoupons(couponSearch.toPageRequest(), couponSearch.getUserId());
 
         return issuedCoupons.map(issuedCoupon -> {
             Coupon coupon = couponRepository.getCoupon(issuedCoupon.getCoupon().getId());
-
             return CouponInfo.builder()
                     .coupon(coupon)
                     .issuedCoupon(issuedCoupon)
@@ -41,34 +38,28 @@ public class CouponService {
     }
 
     public IssuedCoupon getIssuedCoupon(Long issueCouponId) {
-        IssuedCoupon coupon = issuedCouponRepository.getIssuedCoupon(issueCouponId);
-        return coupon;
+        return issuedCouponRepository.getIssuedCoupon(issueCouponId);
     }
 
     @Transactional
     public CouponInfo issueCoupon(CouponCommand command) {
-        if (command.getUserId() < 0) {
-            throw new IllegalArgumentException("유효하지 않은 유저 ID 입니다.");
-        }
+        couponValidator.validateUserId(command.getUserId());
 
         //coupon 수량 확인
         Coupon coupon = couponRepository.getCouponWithLock(command.getCouponId());
-        if (coupon.getRemainingQuantity() <= 0) {
-            throw new IllegalArgumentException("쿠폰이 모두 소진되었습니다." + coupon.getId());
-        }
+        couponValidator.validateCouponQuantity(coupon);
 
-        //coupon update
+        //coupon 발급
         coupon.issue();
         couponRepository.saveCoupon(coupon);
 
-        //issuedCoupon insert
+        //발급 내역 저장
         IssuedCoupon issuedCoupon = IssuedCoupon.builder()
                .coupon(coupon)
                .userId(command.getUserId())
                 .couponStatus(CouponStatusType.NEW)
                 .issuedAt(LocalDateTime.now())
                .build();
-
         issuedCouponRepository.saveIssuedCoupon(issuedCoupon);
 
         return CouponInfo.builder()

@@ -8,7 +8,6 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@AllArgsConstructor
 public class CouponInfo {
     private final Long userId;
     private final Coupon coupon;

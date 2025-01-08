@@ -8,6 +8,7 @@ import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
 import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
+import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -23,14 +24,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
+import static org.mockito.BDDMockito.willThrow;
+import static org.mockito.Mockito.*;
 
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
-
-import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
 public class CouponServiceTest {
@@ -41,16 +40,22 @@ public class CouponServiceTest {
     @Mock
     private IssuedCouponRepository issuedCouponRepository;
 
+    @Mock
+    private CouponValidator couponValidator;
+
     @InjectMocks
     private CouponService couponService;
 
+    /**
+     * 쿠폰 발급 테스트
+     */
     @Test
     @DisplayName("쿠폰 수량 존재 - 발급 성공")
     void issueCoupon_Success() {
         // given
         Long couponId = 1L;
         Long userId = 1L;
-        CouponCommand command = new CouponCommand(couponId, userId);
+        CouponCommand command = CouponCommand.of(userId, couponId);
 
         Coupon coupon = Coupon.builder()
                 .id(couponId)
@@ -65,6 +70,8 @@ public class CouponServiceTest {
                 .build();
 
         // when
+        doNothing().when(couponValidator).validateUserId(userId);
+        doNothing().when(couponValidator).validateCouponQuantity(coupon);
         when(couponRepository.getCouponWithLock(couponId)).thenReturn(coupon);
         when(issuedCouponRepository.saveIssuedCoupon(any(IssuedCoupon.class))).thenReturn(issuedCoupon);
 
@@ -77,55 +84,69 @@ public class CouponServiceTest {
         assertEquals(userId, result.getIssuedCoupon().getUserId());
         assertEquals(CouponStatusType.NEW, result.getIssuedCoupon().getCouponStatus());
 
+        verify(couponValidator).validateUserId(userId);
+        verify(couponValidator).validateCouponQuantity(coupon);
         verify(couponRepository).getCouponWithLock(couponId);
         verify(couponRepository).saveCoupon(coupon);
         verify(issuedCouponRepository).saveIssuedCoupon(any(IssuedCoupon.class));
     }
 
     @Test
+    @DisplayName("유효하지 않은 userId - 발급 실패")
+    void issueCoupon_InvalidUserId_ThrowsException() {
+        // given
+        Long invalidUserId = -1L;
+        Long couponId = 1L;
+        CouponCommand command = CouponCommand.of(invalidUserId, couponId);
+
+        // when
+        doThrow(new IllegalArgumentException("유효하지 않은 유저 ID 입니다."))
+                .when(couponValidator)
+                .validateUserId(invalidUserId);  // any() 대신 실제 값 사용
+
+        // then
+        assertThrows(IllegalArgumentException.class, () -> {
+            couponService.issueCoupon(command);
+        });
+
+        verify(couponValidator).validateUserId(invalidUserId);
+        verifyNoInteractions(couponRepository);
+        verifyNoInteractions(issuedCouponRepository);
+    }
+
+    @Test
     @DisplayName("쿠폰 수량 부족 - 발급 실패")
-    void issueCoupon_Fail() {
+    void issueCoupon_InsufficientQuantity_ThrowsException() {
         // given
         Long couponId = 1L;
         Long userId = 1L;
-        CouponCommand command = new CouponCommand(couponId, userId);
+        CouponCommand command = CouponCommand.of(userId, couponId);
 
         Coupon coupon = Coupon.builder()
                 .id(couponId)
-                .remainingQuantity(0) // 수량 0으로 설정
+                .remainingQuantity(0)
                 .build();
 
-        // when
+        doNothing().when(couponValidator).validateUserId(userId);
+        doThrow(new IllegalArgumentException("쿠폰이 모두 소진되었습니다." + couponId))
+                .when(couponValidator).validateCouponQuantity(coupon);
         when(couponRepository.getCouponWithLock(couponId)).thenReturn(coupon);
 
-        // then
-        IllegalArgumentException exception = assertThrows(
-                IllegalArgumentException.class,
-                () -> couponService.issueCoupon(command)
-        );
-
-        assertEquals("쿠폰이 모두 소진되었습니다." + couponId, exception.getMessage());
-        verify(couponRepository).getCouponWithLock(couponId);
-        verify(couponRepository, never()).saveCoupon(any(Coupon.class));
-        verify(issuedCouponRepository, never()).saveIssuedCoupon(any(IssuedCoupon.class));
-    }
-
-
-    @Test
-    @DisplayName("유효하지 않은 유저 ID - 쿠폰 조회 실패")
-    void getCoupon_Fail() {
-        // given
-        Long invalidUserId = -1L;
-        CouponSearch couponSearch = CouponSearch.of(invalidUserId, 0, 10);
-
         // when & then
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
-                () -> couponService.getCoupons(couponSearch));
+        assertThrows(IllegalArgumentException.class, () -> {
+            couponService.issueCoupon(command);
+        });
 
-        assertThat(exception.getMessage()).isEqualTo("유효하지 않은 유저 ID 입니다.");
-
+        verify(couponValidator).validateUserId(userId);
+        verify(couponValidator).validateCouponQuantity(coupon);
+        verify(couponRepository).getCouponWithLock(couponId);
+        verifyNoMoreInteractions(couponRepository);
+        verifyNoInteractions(issuedCouponRepository);
     }
 
+    /**
+     * 쿠폰 조회 테스트
+     */
     @Test
     @DisplayName("쿠폰 조회 성공")
     void getCoupon_Success() {
@@ -152,12 +173,12 @@ public class CouponServiceTest {
         Page<IssuedCoupon> issuedCouponPage = new PageImpl<>(issuedCoupons);
 
         // when
+        doNothing().when(couponValidator).validateUserId(userId);
         when(issuedCouponRepository.getIssuedCoupons(any(PageRequest.class), eq(userId)))
                 .thenReturn(issuedCouponPage);
-        when(couponRepository.getCoupon(any(Long.class)))
+        when(couponRepository.getCoupon(eq(couponId)))
                 .thenReturn(coupon);
 
-        // when
         Page<CouponInfo> result = couponService.getCoupons(couponSearch);
 
         // then
@@ -166,14 +187,42 @@ public class CouponServiceTest {
                 () -> assertThat(result.getContent()).hasSize(1),
                 () -> {
                     CouponInfo couponInfo = result.getContent().get(0);
-                    assertThat(couponInfo.getCoupon()).isNotNull();  // null 체크 추가
-                    assertThat(couponInfo.getCoupon()).isEqualTo(coupon);
+                    assertThat(couponInfo.getCoupon())
+                            .isNotNull()
+                            .isEqualTo(coupon);
+                    assertThat(couponInfo.getIssuedCoupon())
+                            .isNotNull()
+                            .isEqualTo(issuedCoupon);
                 },
-                () -> assertThat(result.getContent().get(0).getIssuedCoupon()).isEqualTo(issuedCoupon),
                 () -> assertThat(result.getTotalElements()).isEqualTo(1)
         );
 
+        // verify
+        verify(couponValidator).validateUserId(userId);
         verify(issuedCouponRepository).getIssuedCoupons(any(PageRequest.class), eq(userId));
         verify(couponRepository).getCoupon(couponId);
+        verifyNoMoreInteractions(couponValidator, couponRepository, issuedCouponRepository);
+    }
+
+    @Test
+    @DisplayName("유효하지 않은 userId - 쿠폰 조회 실패")
+    void getCoupon_InvalidUserId_ThrowsException() {
+        // given
+        Long invalidUserId = -1L;
+        CouponSearch couponSearch = CouponSearch.of(invalidUserId, 0, 10);
+
+        // when
+        willThrow(new IllegalArgumentException("유효하지 않은 유저 ID 입니다."))
+                .given(couponValidator)
+                .validateUserId(any(Long.class));
+
+        // then
+        assertThrows(IllegalArgumentException.class, () -> {
+            couponService.getCoupons(couponSearch);
+        });
+
+        // verify
+        verify(couponValidator).validateUserId(invalidUserId);
+        verifyNoInteractions(issuedCouponRepository, couponRepository);
     }
 }
