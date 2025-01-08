@@ -28,11 +28,11 @@ public class ProductRankInfo {
         this.endDate = endDate;
     }
 
-    public ProductRankInfo(Long productId, String productName, Long totalQuantitySold, Integer price) {
+    public ProductRankInfo(Long productId, String productName, Integer totalQuantitySold, Integer price) {
         this.rank = null;
         this.productId = productId;
         this.productName = productName;
-        this.totalQuantitySold = totalQuantitySold.intValue();
+        this.totalQuantitySold = totalQuantitySold;
         this.price = price;
     }
 

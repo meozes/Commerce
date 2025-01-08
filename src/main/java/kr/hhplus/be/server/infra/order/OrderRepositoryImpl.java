@@ -8,10 +8,10 @@ import org.springframework.stereotype.Repository;
 
 @Repository
 public interface OrderRepositoryImpl extends JpaRepository<Order, Long>, OrderRepository {
-    @Override
-    default Order save(Order order) {
-        return saveAndFlush(order);
-    }
+//    @Override
+//    default Order save(Order order) {
+//        return saveAndFlush(order);
+//    }
 
     @Override
     default Order getOrder(Long orderId) {

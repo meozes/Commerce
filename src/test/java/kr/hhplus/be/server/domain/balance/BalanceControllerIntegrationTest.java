@@ -200,7 +200,6 @@ class BalanceControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.amount").value(initialBalance + chargeAmount))
                 .andDo(print());
 
-        // verify database
         Balance savedBalance = balanceRepository.getBalance(userId).orElseThrow();
         assertThat(savedBalance.getBalance()).isEqualTo(initialBalance + chargeAmount);
     }

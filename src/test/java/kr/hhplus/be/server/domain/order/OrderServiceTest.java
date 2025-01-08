@@ -175,8 +175,8 @@ class OrderServiceTest {
         LocalDate endDate = LocalDate.now().minusDays(1);
 
         List<ProductRankInfo> mockRankList = List.of(
-                new ProductRankInfo(1L, "우유", 100L, 10000),
-                new ProductRankInfo(2L, "쿠키", 80L, 15000)
+                new ProductRankInfo(1L, "우유", 100, 10000),
+                new ProductRankInfo(2L, "쿠키", 80, 15000)
         );
 
         when(orderItemRepository.findTopProductsByOrderDate(startDate, endDate))

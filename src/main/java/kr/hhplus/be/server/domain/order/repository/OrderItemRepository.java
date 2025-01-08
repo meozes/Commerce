@@ -13,4 +13,6 @@ public interface OrderItemRepository {
     List<OrderItem> getOrderItems(Long orderId);
 
     List<ProductRankInfo> findTopProductsByOrderDate(LocalDate startDate, LocalDate endDate);
+
+    List<OrderItem> findAll();
 }

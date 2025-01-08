@@ -53,4 +53,9 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
                 .limit(5)
                 .fetch();
     }
+
+    @Override
+    public List<OrderItem> findAll() {
+        return orderItemJpaRepository.findAll();
+    }
 }

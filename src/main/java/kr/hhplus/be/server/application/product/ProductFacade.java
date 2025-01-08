@@ -15,12 +15,14 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class ProductFacade {
 
-    private OrderService orderService;
+    private final OrderService orderService;
 
     public List<ProductRankInfo> getTopProducts() {
         LocalDate today = LocalDate.now();
-        LocalDate endDate = today.minusDays(1);
-        LocalDate startDate = endDate.minusDays(4);
+        LocalDate endDate = today;
+        LocalDate startDate = endDate.minusDays(3);
+//        LocalDate endDate = today.minusDays(1);
+//        LocalDate startDate = endDate.minusDays(4);
 
         List<ProductRankInfo> products = orderService.getTopProductsByOrderDate(startDate, endDate);
 

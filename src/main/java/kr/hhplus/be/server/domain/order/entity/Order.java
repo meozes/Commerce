@@ -1,14 +1,12 @@
 package kr.hhplus.be.server.domain.order.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.domain.order.type.OrderStatusType;
 import lombok.*;
 
 @Entity
+@Table(name = "orders")
 @Getter
 @Builder
 @AllArgsConstructor

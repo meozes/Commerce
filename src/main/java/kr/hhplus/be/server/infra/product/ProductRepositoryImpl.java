@@ -5,9 +5,11 @@ import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -20,5 +22,15 @@ public interface ProductRepositoryImpl extends JpaRepository<Product, Long>, Pro
     @Override
     default Page<Product> getProducts(PageRequest pageRequest) {
         return findAll((Pageable) pageRequest);
+    }
+
+    @Override
+    default Product save(Product product) {
+        return saveAndFlush(product);
+    }
+
+    @Override
+    default List<Product> findAll() {
+        return findAll(Sort.by(Sort.Direction.ASC, "id"));
     }
 }

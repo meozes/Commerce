@@ -23,4 +23,6 @@ public interface StockRepository {
 
     Stock save(Stock stock);
 
+    void deleteAll();
+
 }

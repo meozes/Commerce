@@ -41,7 +41,6 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
-//@Transactional
 @Testcontainers
 class CouponControllerIntegrationTest {
     @Autowired
@@ -52,9 +51,6 @@ class CouponControllerIntegrationTest {
 
     @Autowired
     private IssuedCouponRepository issuedCouponRepository;
-
-    @Autowired
-    private ObjectMapper objectMapper;
 
     private Long savedCouponId;
 
