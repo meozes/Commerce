@@ -20,7 +20,7 @@ public class ProductFacade {
     public List<ProductRankInfo> getTopProducts() {
         LocalDate today = LocalDate.now();
         LocalDate endDate = today.minusDays(1);
-        LocalDate startDate = endDate.minusDays(3);
+        LocalDate startDate = endDate.minusDays(4);
 
         List<ProductRankInfo> products = orderService.getTopProductsByOrderDate(startDate, endDate);
 

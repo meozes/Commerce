@@ -20,4 +20,10 @@ public class OrderInfo {
                 .orderItems(orderItems)
                 .build();
     }
+
+    public static OrderInfo from(Order order){
+        return OrderInfo.builder()
+                .order(order)
+                .build();
+    }
 }

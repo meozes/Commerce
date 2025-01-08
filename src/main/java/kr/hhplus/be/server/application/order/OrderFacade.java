@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.order;
 
+import kr.hhplus.be.server.domain.coupon.dto.IssuedCouponInfo;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.order.dto.OrderAmountInfo;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
@@ -30,25 +31,28 @@ public class OrderFacade {
         orderValidation.validateOrder(command);
 
         // 2. 잔고 확인
-        orderBalanceValidation.handleBalance(command);
+        orderBalanceValidation.handleBalance(command.getUserId());
 
         // 3. 재고 확인
-        orderProductValidation.handleProduct(command);
+        orderProductValidation.handleProduct(command.getOrderItems());
 
         // 4. 쿠폰 유효성 체크, 사용처리
         IssuedCoupon coupon = null;
         if (command.getCouponId() != null) {
-            coupon = orderCouponValidation.handleCoupon(command);
+            coupon = orderCouponValidation.handleCoupon(command.getCouponId());
         }
 
         // 5. 금액 계산
-        OrderAmountInfo amountInfo = orderAmountCalculator.calculate(command, coupon);
+        OrderAmountInfo amountInfo = orderAmountCalculator.calculate(command.getOrderItems(), coupon);
 
         // 6. 최종 주문 생성
-        return orderService.createOrder(command,
+        return orderService.createOrder(
+                command,
                 amountInfo.getOriginalAmount(),
                 amountInfo.getDiscountAmount(),
-                amountInfo.getFinalAmount());
+                amountInfo.getFinalAmount(),
+                coupon
+        );
     }
 
 }

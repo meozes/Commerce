@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.domain.order.usecase;
 
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.domain.coupon.dto.IssuedCouponInfo;
+import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
 import kr.hhplus.be.server.domain.order.entity.Order;
@@ -26,7 +28,7 @@ public class OrderService {
 
 
     @Transactional
-    public OrderInfo createOrder(OrderCommand command, Integer originalAmount, Integer discountAmount, Integer finalAmount) {
+    public OrderInfo createOrder(OrderCommand command, Integer originalAmount, Integer discountAmount, Integer finalAmount, IssuedCoupon issuedCoupon) {
 
         Order order = Order.builder()
                 .userId(command.getUserId())
@@ -35,11 +37,11 @@ public class OrderService {
                 .finalAmount(finalAmount)
                 .orderStatus(OrderStatusType.PENDING)
                 .build();
-        Order saveOrder = orderRepository.save(order);
+        Order savedOrder = orderRepository.save(order);
 
         List<OrderItem> orderItems = command.getOrderItems().stream()
                 .map(item -> OrderItem.builder()
-                        .order(saveOrder)
+                        .order(savedOrder)
                         .productId(item.getProductId())
                         .productName(item.getProductName())
                         .quantity(item.getQuantity())
@@ -49,14 +51,18 @@ public class OrderService {
                 .collect(Collectors.toList());
         orderItems = orderItemRepository.saveAll(orderItems);
 
+        if (issuedCoupon != null){
+            issuedCoupon.assignToOrder(savedOrder);
+        }
+
         return OrderInfo.builder()
-                .order(saveOrder)
+                .order(savedOrder)
                 .orderItems(orderItems)
                 .build();
     }
 
-    public Order getOrder(Long orderId) {
-        return orderRepository.getOrder(orderId);
+    public OrderInfo getOrder(Long orderId) {
+        return OrderInfo.from(orderRepository.getOrder(orderId));
     }
 
     @Transactional

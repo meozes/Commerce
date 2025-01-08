@@ -26,10 +26,9 @@ public class BalanceService {
 
     public BalanceInfo getBalance(BalanceQuery balanceQuery) {
         userIdValidator.validate(balanceQuery.getUserId());
-        Balance balance = balanceRepository.getBalance(balanceQuery.getUserId()).orElseThrow(
-                () -> new EntityNotFoundException("유저 ID에 해당하는 잔고가 없습니다. " + balanceQuery.getUserId())
-        );
-        return BalanceInfo.of(balance);
+        return balanceRepository.getBalance(balanceQuery.getUserId())
+                .map(BalanceInfo::of)
+                .orElse(null);
     }
 
     @Transactional

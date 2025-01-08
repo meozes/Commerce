@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.application.payment;
 
+import kr.hhplus.be.server.domain.order.dto.OrderInfo;
 import kr.hhplus.be.server.domain.order.service.OrderEventSender;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
@@ -46,13 +47,13 @@ public class PaymentFacade {
             balanceService.deductBalance(command.getUserId(), command.getAmount());
 
             //5. 주문 상태 업데이트
-            orderService.completeOrder(order);
+            Order updatedOrder = orderService.completeOrder(order);
 
             //6. 결제 완료. 결제 상태 업데이트
             paymentService.completePayment(payment, PaymentStatusType.COMPLETED);
 
             //7. 외부 데이터 플랫폼으로 주문 정보 전송
-            orderEventSender.send(order);
+            orderEventSender.send(updatedOrder);
 
         } catch (InsufficientBalanceException e) {
             if (payment != null){

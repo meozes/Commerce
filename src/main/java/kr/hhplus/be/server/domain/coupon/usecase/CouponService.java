@@ -2,6 +2,7 @@ package kr.hhplus.be.server.domain.coupon.usecase;
 
 import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.domain.coupon.dto.IssuedCouponInfo;
 import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
@@ -40,8 +41,7 @@ public class CouponService {
 
     public IssuedCoupon getIssuedCoupon(Long issueCouponId) {
         return issuedCouponRepository.getIssuedCoupon(issueCouponId).orElseThrow(
-                () -> new EntityNotFoundException("해당 쿠폰이 존재하지 않습니다.")
-        );
+                () -> new EntityNotFoundException("해당 쿠폰이 존재하지 않습니다."));
     }
 
     @Transactional

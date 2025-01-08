@@ -10,8 +10,6 @@ import java.util.stream.Collectors;
 
 @Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class OrderResponse {
     private Long orderId;
     private Long userId;

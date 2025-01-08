@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.product.dto;
 
-import kr.hhplus.be.server.domain.product.entity.Product;
 import lombok.*;
 
 import java.time.LocalDate;

@@ -6,7 +6,6 @@ import lombok.Getter;
 
 @Getter
 @Builder
-@AllArgsConstructor
 public class OrderAmountInfo {
     private Integer originalAmount;  // 원래 금액
     private Integer discountAmount;  // 할인 금액

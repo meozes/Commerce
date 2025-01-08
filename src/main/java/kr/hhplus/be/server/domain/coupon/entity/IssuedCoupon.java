@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.coupon.entity;
 import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
+import kr.hhplus.be.server.domain.order.entity.Order;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -25,7 +26,9 @@ public class IssuedCoupon extends BaseTimeEntity {
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
 
-    private Long orderId;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id")
+    private Order order;
 
     private CouponStatusType couponStatus;
 
@@ -44,5 +47,9 @@ public class IssuedCoupon extends BaseTimeEntity {
 
         this.couponStatus = CouponStatusType.USED;
         this.usedAt = LocalDateTime.now();
+    }
+
+    public void assignToOrder(Order order) {
+        this.order = order;
     }
 }
