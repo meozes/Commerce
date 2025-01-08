@@ -13,7 +13,6 @@ import java.util.List;
 @RequiredArgsConstructor
 public class PaymentProductValidation {
     private final OrderService orderService;
-    private final ProductService productService;
     private final StockService stockService;
 
     public void validateAndDeductStock(Long orderId) {

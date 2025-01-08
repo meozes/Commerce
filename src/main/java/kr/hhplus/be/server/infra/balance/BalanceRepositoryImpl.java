@@ -18,35 +18,4 @@ public interface BalanceRepositoryImpl extends JpaRepository<Balance, Long>, Bal
                 .orElseThrow(() -> new EntityNotFoundException("유저 ID에 해당하는 잔고가 없습니다. " + userId));
     }
 
-    @Override
-    default Balance chargeBalance(ChargeCommand command) {
-        Balance balance = getBalance(command.getUserId());
-        balance = Balance.builder()
-                .id(balance.getId())
-                .userId(balance.getUserId())
-                .balance(balance.getBalance() + command.getChargeAmount())
-                .build();
-        return save(balance);
-    }
-
-    @Override
-    default Balance createBalance(Long userId) {
-        Balance balance = Balance.builder()
-                .userId(userId)
-                .balance(0)
-                .build();
-        return save(balance);
-    }
-
-    @Override
-    default Balance deductBalance(Long userId, Integer amount) {
-        Balance balance = getBalance(userId);
-        balance = Balance.builder()
-                .id(balance.getId())
-                .userId(balance.getUserId())
-                .balance(balance.getBalance() - amount)
-                .build();
-        return save(balance);
-    }
-
 }

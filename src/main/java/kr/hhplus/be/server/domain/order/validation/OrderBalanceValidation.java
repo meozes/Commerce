@@ -15,7 +15,7 @@ public class OrderBalanceValidation {
     public void handleBalance(OrderCommand command) {
         BalanceInfo balance = balanceService.getBalance(BalanceQuery.of(command.getUserId()));
         if (balance == null) {
-            balanceService.createBalance(BalanceQuery.of(command.getUserId()));
+            balanceService.createBalance(command.getUserId());
         }
     }
 }

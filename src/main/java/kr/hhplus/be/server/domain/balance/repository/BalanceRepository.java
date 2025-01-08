@@ -13,14 +13,10 @@ import org.springframework.data.repository.query.Param;
 public interface BalanceRepository {
     Balance getBalance(Long userId);
 
-    Balance chargeBalance(ChargeCommand command);
-
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")})
     @Query("select b from Balance b where b.userId = :userId")
     Balance getBalanceWithLock(@Param("userId") Long userId);
 
-    Balance createBalance(Long userId);
-
-    Balance deductBalance(Long userId, Integer amount);
+    Balance save(Balance balance);
 }

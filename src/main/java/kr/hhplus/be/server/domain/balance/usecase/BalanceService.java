@@ -1,5 +1,7 @@
 package kr.hhplus.be.server.domain.balance.usecase;
 
+import kr.hhplus.be.server.domain.balance.validation.AmountValidator;
+import kr.hhplus.be.server.domain.balance.validation.UserIdValidator;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
@@ -14,32 +16,35 @@ import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
-@Transactional
 public class BalanceService {
 
     private final BalanceRepository balanceRepository;
     private final BalanceHistoryRepository historyRepository;
+    private final UserIdValidator userIdValidator;
+    private final AmountValidator amountValidator;
 
+    @Transactional(readOnly = true)
     public BalanceInfo getBalance(BalanceQuery balanceQuery) {
-        if (balanceQuery.getUserId() < 0) {
-            throw new IllegalArgumentException("유효하지 않은 유저 ID 입니다.");
-        }
+        userIdValidator.validate(balanceQuery.getUserId());
         Balance balance = balanceRepository.getBalance(balanceQuery.getUserId());
         return BalanceInfo.of(balance);
     }
 
+    @Transactional
     public BalanceInfo chargeBalance(ChargeCommand command) {
-        if (command.getUserId() < 0) {
-            throw new IllegalArgumentException("유효하지 않은 유저 ID 입니다.");
-        }
-        if (command.getChargeAmount() < 100) {
-            throw new IllegalArgumentException("충전 금액은 100원 이상이어야 합니다.");
-        }
+        userIdValidator.validate(command.getUserId());
+        amountValidator.validateChargeAmount(command.getChargeAmount());
 
-        Balance original = balanceRepository.getBalanceWithLock(command.getUserId());
-        Balance balance = balanceRepository.chargeBalance(command);
+        Balance balance = balanceRepository.getBalanceWithLock(command.getUserId());
+        if (balance == null) {
+            balance = createBalance(command.getUserId());
+        }
+        Integer beforeBalance = balance.getBalance();
+        balance.charge(command.getChargeAmount());
+        balance = balanceRepository.save(balance);
+
         historyRepository.saveHistory(
-                original.getBalance(),
+                beforeBalance,
                 balance.getBalance(),
                 balance.getId(),
                 TransactionType.CHARGE,
@@ -48,36 +53,35 @@ public class BalanceService {
         return BalanceInfo.of(balance);
     }
 
-    public Balance createBalance(BalanceQuery balanceQuery) {
-        return balanceRepository.createBalance(balanceQuery.getUserId());
-    }
-
     @Transactional
     public BalanceInfo deductBalance(Long userId, Integer amount) {
+        userIdValidator.validate(userId);
+        amountValidator.validateDeductAmount(amount);
 
-        if (amount <= 0) {
-            throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다.");
+        Balance balance = balanceRepository.getBalanceWithLock(userId);
+        if (balance == null) {
+            balance = createBalance(userId);
         }
 
-        Balance original = balanceRepository.getBalanceWithLock(userId);
-        if (original == null) {
-            original = createBalance(BalanceQuery.of(userId));
-        }
-
-        if (original.getBalance() < amount) {
-            throw new InsufficientBalanceException("잔액이 부족합니다.");
-        }
-
-        Balance balance = balanceRepository.deductBalance(userId, amount);
+        Integer beforeBalance = balance.getBalance();
+        balance.deduct(amount);
+        balance = balanceRepository.save(balance);
 
         historyRepository.saveHistory(
-                original.getBalance(),
+                beforeBalance,
                 balance.getBalance(),
                 balance.getId(),
                 TransactionType.USE,
                 amount
         );
-
         return BalanceInfo.of(balance);
+    }
+
+    public Balance createBalance(Long userId) {
+        Balance balance = Balance.builder()
+                .userId(userId)
+                .balance(0)
+                .build();
+        return balanceRepository.save(balance);
     }
 }
