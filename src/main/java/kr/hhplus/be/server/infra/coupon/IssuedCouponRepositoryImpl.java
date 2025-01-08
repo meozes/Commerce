@@ -6,6 +6,8 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 
+import java.util.Optional;
+
 
 public interface IssuedCouponRepositoryImpl extends JpaRepository<IssuedCoupon, Long>, IssuedCouponRepository {
     Page<IssuedCoupon> findAllByUserId(PageRequest pageRequest, Long userId);
@@ -21,8 +23,8 @@ public interface IssuedCouponRepositoryImpl extends JpaRepository<IssuedCoupon, 
     }
 
     @Override
-    default IssuedCoupon getIssuedCoupon(Long issueCouponId){
-        return findById(issueCouponId).orElse(null);
+    default Optional<IssuedCoupon> getIssuedCoupon(Long issueCouponId){
+        return findById(issueCouponId);
     }
 
 }

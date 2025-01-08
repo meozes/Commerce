@@ -16,9 +16,4 @@ public interface ProductRepository {
    Optional<Product> getProduct(Long productId);
 
     Page<Product> getProducts(PageRequest pageRequest);
-
-//    @Lock(LockModeType.PESSIMISTIC_WRITE)
-//    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")})
-//    @Query("select p from Product p where p.id = :id")
-//    Optional<Product> findByIdWithLock(@Param("id") Long id);
 }

@@ -2,16 +2,16 @@ package kr.hhplus.be.server.domain.balance.repository;
 
 import jakarta.persistence.LockModeType;
 import jakarta.persistence.QueryHint;
-import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
-import kr.hhplus.be.server.domain.balance.dto.ChargeCommand;
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface BalanceRepository {
-    Balance getBalance(Long userId);
+    Optional<Balance> getBalance(Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")})

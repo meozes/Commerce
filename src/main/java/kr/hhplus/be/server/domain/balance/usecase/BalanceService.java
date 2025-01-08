@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.balance.usecase;
 
+import jakarta.persistence.EntityNotFoundException;
 import kr.hhplus.be.server.domain.balance.validation.AmountValidator;
 import kr.hhplus.be.server.domain.balance.validation.UserIdValidator;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
@@ -23,10 +24,11 @@ public class BalanceService {
     private final UserIdValidator userIdValidator;
     private final AmountValidator amountValidator;
 
-    @Transactional(readOnly = true)
     public BalanceInfo getBalance(BalanceQuery balanceQuery) {
         userIdValidator.validate(balanceQuery.getUserId());
-        Balance balance = balanceRepository.getBalance(balanceQuery.getUserId());
+        Balance balance = balanceRepository.getBalance(balanceQuery.getUserId()).orElseThrow(
+                () -> new EntityNotFoundException("유저 ID에 해당하는 잔고가 없습니다. " + balanceQuery.getUserId())
+        );
         return BalanceInfo.of(balance);
     }
 
@@ -77,6 +79,7 @@ public class BalanceService {
         return BalanceInfo.of(balance);
     }
 
+    @Transactional
     public Balance createBalance(Long userId) {
         Balance balance = Balance.builder()
                 .userId(userId)

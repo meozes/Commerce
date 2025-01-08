@@ -20,6 +20,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.Optional;
+
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
@@ -56,7 +58,7 @@ class BalanceServiceTest {
                 .build();
 
         doNothing().when(userIdValidator).validate(userId);
-        when(balanceRepository.getBalance(userId)).thenReturn(balance);
+        when(balanceRepository.getBalance(userId)).thenReturn(Optional.ofNullable(balance));
 
         // when
         BalanceInfo result = balanceService.getBalance(BalanceQuery.of(userId));

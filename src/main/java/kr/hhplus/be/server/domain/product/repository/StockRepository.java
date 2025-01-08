@@ -13,7 +13,6 @@ import java.util.List;
 
 public interface StockRepository {
     Stock getStock(Long productId);
-//    List<Stock> getStocks(Long productId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")})

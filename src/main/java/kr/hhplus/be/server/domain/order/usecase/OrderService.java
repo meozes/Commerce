@@ -59,6 +59,7 @@ public class OrderService {
         return orderRepository.getOrder(orderId);
     }
 
+    @Transactional
     public Order completeOrder(Order order) {
         order.complete();
         return orderRepository.save(order);

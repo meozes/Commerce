@@ -86,7 +86,7 @@ class StockServiceTest {
     }
 
     @Test
-    @DisplayName("재고가 부족할 때 예외 발생")
+    @DisplayName("재고 부족 - 예외 발생")
     void validateAndDeductStock_InsufficientStock() {
         // given
         Long productId = 1L;

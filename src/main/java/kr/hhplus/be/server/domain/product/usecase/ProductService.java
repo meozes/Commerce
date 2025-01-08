@@ -2,20 +2,16 @@ package kr.hhplus.be.server.domain.product.usecase;
 
 import jakarta.persistence.EntityNotFoundException;
 import kr.hhplus.be.server.domain.product.dto.ProductInfo;
-import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductSearch;
 import kr.hhplus.be.server.domain.product.dto.ProductSearchQuery;
 import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.entity.Stock;
-import kr.hhplus.be.server.domain.product.exception.InsufficientStockException;
 import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
 
-import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,7 +28,9 @@ public class ProductService {
         if (productSearch.getProductId() < 0){
             throw new IllegalArgumentException("유효하지 않은 상품 ID 입니다.");
         }
-        Product product = productRepository.getProduct(productSearch.getProductId()).orElseThrow();
+        Product product = productRepository.getProduct(productSearch.getProductId()).orElseThrow(
+                () -> new EntityNotFoundException("해당 상품이 존재하지 않습니다.")
+        );
         Stock stock = stockRepository.getStock(productSearch.getProductId());
 
         return ProductInfo.of(product, stock);

@@ -22,7 +22,6 @@ public class StockService {
         Product product = productRepository.getProduct(productId)
                 .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. productId: " + productId));
         Stock stock = stockRepository.getStockWithLock(productId);
-
         if (stock == null) {
             throw new EntityNotFoundException("재고 정보를 찾을 수 없습니다. productId: " + productId);
         }
