@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.application.order;
 
-import kr.hhplus.be.server.domain.coupon.dto.IssuedCouponInfo;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.order.dto.OrderAmountInfo;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;

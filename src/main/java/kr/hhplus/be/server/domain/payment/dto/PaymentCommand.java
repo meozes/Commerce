@@ -6,8 +6,6 @@ import lombok.*;
 
 @Getter
 @Builder
-@AllArgsConstructor
-@NoArgsConstructor(access = AccessLevel.PROTECTED)
 public class PaymentCommand {
     @NotNull(message = "사용자 ID는 필수입니다.")
     private Long userId;

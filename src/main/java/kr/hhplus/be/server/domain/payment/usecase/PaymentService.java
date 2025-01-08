@@ -10,6 +10,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 
+import java.util.Objects;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -18,6 +20,9 @@ public class PaymentService {
 
     @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Payment createPayment(PaymentCommand command, Order order) {
+        if (!Objects.equals(order.getFinalAmount(), command.getAmount())){
+            throw new IllegalArgumentException("결제 금액 요청 금액이 최종 주문 금액과 다릅니다.");
+        }
 
         Payment payment = Payment.builder()
                 .order(order)
