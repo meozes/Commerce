@@ -139,7 +139,7 @@ class BalanceServiceTest {
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateChargeAmount(chargeAmount);
-        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(balance);
+        when(balanceRepository.getBalance(userId)).thenReturn(Optional.ofNullable(balance));
         when(balanceRepository.save(any(Balance.class))).thenReturn(chargedBalance);
         when(historyRepository.saveHistory(1000, 11000, 1L, TransactionType.CHARGE, chargeAmount))
                 .thenReturn(history);
@@ -152,7 +152,7 @@ class BalanceServiceTest {
                 () -> assertEquals(11000, result.getBalance()),
                 () -> verify(userIdValidator).validate(userId),
                 () -> verify(amountValidator).validateChargeAmount(chargeAmount),
-                () -> verify(balanceRepository).getBalanceWithLock(userId),
+                () -> verify(balanceRepository).getBalance(userId),
                 () -> verify(historyRepository).saveHistory(1000, 11000, 1L, TransactionType.CHARGE, chargeAmount)
         );
     }
@@ -170,19 +170,20 @@ class BalanceServiceTest {
         Balance newBalance = Balance.builder()
                 .id(1L)
                 .userId(userId)
-                .balance(0)
+                .balance(0)      // 새로 생성된 계좌의 초기 잔액
                 .build();
 
         Balance chargedBalance = Balance.builder()
                 .id(1L)
                 .userId(userId)
-                .balance(10000)
+                .balance(10000)  // 충전 후 잔액
                 .build();
+
 
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateChargeAmount(chargeAmount);
-        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(null);
+        when(balanceRepository.getBalance(userId)).thenReturn(Optional.empty());
         when(balanceRepository.save(any(Balance.class))).thenReturn(newBalance, chargedBalance);
         when(historyRepository.saveHistory(0, 10000, 1L, TransactionType.CHARGE, chargeAmount))
                 .thenReturn(any(BalanceHistory.class));
@@ -193,7 +194,7 @@ class BalanceServiceTest {
         assertAll(
                 () -> assertEquals(userId, result.getUserId()),
                 () -> assertEquals(10000, result.getBalance()),
-                () -> verify(balanceRepository).getBalanceWithLock(userId),
+                () -> verify(balanceRepository).getBalance(userId),
                 () -> verify(balanceRepository, times(2)).save(any(Balance.class)),
                 () -> verify(historyRepository).saveHistory(0, 10000, 1L, TransactionType.CHARGE, chargeAmount)
         );
@@ -221,7 +222,7 @@ class BalanceServiceTest {
                 () -> assertEquals("충전 금액은 100원 보다 커야 합니다.", exception.getMessage()),
                 () -> verify(userIdValidator).validate(userId),
                 () -> verify(amountValidator).validateChargeAmount(invalidAmount),
-                () -> verify(balanceRepository, never()).getBalanceWithLock(any()),
+                () -> verify(balanceRepository, never()).getBalance(any()),
                 () -> verify(historyRepository, never()).saveHistory(anyInt(), anyInt(), anyLong(), any(), anyInt())
         );
     }

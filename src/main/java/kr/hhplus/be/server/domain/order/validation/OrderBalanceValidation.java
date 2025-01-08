@@ -12,9 +12,6 @@ public class OrderBalanceValidation {
     private final BalanceService balanceService;
 
     public void handleBalance(Long userId) {
-        BalanceInfo balance = balanceService.getBalance(BalanceQuery.of(userId));
-        if (balance == null) {
-            balanceService.createBalance(userId);
-        }
+        balanceService.getBalance(BalanceQuery.of(userId));
     }
 }

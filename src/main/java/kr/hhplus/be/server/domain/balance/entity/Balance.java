@@ -7,6 +7,7 @@ import jakarta.persistence.Id;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import lombok.*;
+import org.springframework.data.annotation.Version;
 
 @Entity
 @Getter
@@ -21,6 +22,9 @@ public class Balance extends BaseTimeEntity {
     private Long userId;
 
     private Integer balance;
+
+    @Version
+    private Long version;
 
 
     public void charge(Integer amount) {

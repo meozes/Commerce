@@ -10,7 +10,7 @@ public class BalanceInfo {
     private final Long userId;
     private final Integer balance;
 
-    public static BalanceInfo of(Balance balance){
+    public static BalanceInfo from(Balance balance){
         return BalanceInfo.builder()
                 .userId(balance.getUserId())
                 .balance(balance.getBalance())

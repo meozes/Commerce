@@ -33,6 +33,8 @@ public class QBalance extends EntityPathBase<Balance> {
 
     public final NumberPath<Long> userId = createNumber("userId", Long.class);
 
+    public final NumberPath<Long> version = createNumber("version", Long.class);
+
     public QBalance(String variable) {
         super(Balance.class, forVariable(variable));
     }
