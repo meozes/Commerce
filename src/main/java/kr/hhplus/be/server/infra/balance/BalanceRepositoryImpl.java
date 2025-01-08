@@ -13,7 +13,8 @@ import java.util.Optional;
 public interface BalanceRepositoryImpl extends JpaRepository<Balance, Long>, BalanceRepository {
     @Override
     default Optional<Balance> getBalance(Long userId) {
-        return findById(userId);
+        return findByUserId(userId);
     }
 
+    Optional<Balance> findByUserId(Long userId);
 }

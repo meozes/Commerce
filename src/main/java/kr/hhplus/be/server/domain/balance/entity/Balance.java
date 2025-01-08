@@ -1,9 +1,6 @@
 package kr.hhplus.be.server.domain.balance.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import lombok.*;
@@ -19,12 +16,10 @@ public class Balance extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(unique = true)
     private Long userId;
 
     private Integer balance;
-
-    @Version
-    private Long version;
 
 
     public void charge(Integer amount) {

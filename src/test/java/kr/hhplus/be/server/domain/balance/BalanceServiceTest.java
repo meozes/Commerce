@@ -139,7 +139,7 @@ class BalanceServiceTest {
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateChargeAmount(chargeAmount);
-        when(balanceRepository.getBalance(userId)).thenReturn(Optional.ofNullable(balance));
+        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(balance);
         when(balanceRepository.save(any(Balance.class))).thenReturn(chargedBalance);
         when(historyRepository.saveHistory(1000, 11000, 1L, TransactionType.CHARGE, chargeAmount))
                 .thenReturn(history);
@@ -152,7 +152,7 @@ class BalanceServiceTest {
                 () -> assertEquals(11000, result.getBalance()),
                 () -> verify(userIdValidator).validate(userId),
                 () -> verify(amountValidator).validateChargeAmount(chargeAmount),
-                () -> verify(balanceRepository).getBalance(userId),
+                () -> verify(balanceRepository).getBalanceWithLock(userId),
                 () -> verify(historyRepository).saveHistory(1000, 11000, 1L, TransactionType.CHARGE, chargeAmount)
         );
     }
@@ -183,7 +183,7 @@ class BalanceServiceTest {
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateChargeAmount(chargeAmount);
-        when(balanceRepository.getBalance(userId)).thenReturn(Optional.empty());
+        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(null);
         when(balanceRepository.save(any(Balance.class))).thenReturn(newBalance, chargedBalance);
         when(historyRepository.saveHistory(0, 10000, 1L, TransactionType.CHARGE, chargeAmount))
                 .thenReturn(any(BalanceHistory.class));
@@ -194,7 +194,7 @@ class BalanceServiceTest {
         assertAll(
                 () -> assertEquals(userId, result.getUserId()),
                 () -> assertEquals(10000, result.getBalance()),
-                () -> verify(balanceRepository).getBalance(userId),
+                () -> verify(balanceRepository).getBalanceWithLock(userId),
                 () -> verify(balanceRepository, times(2)).save(any(Balance.class)),
                 () -> verify(historyRepository).saveHistory(0, 10000, 1L, TransactionType.CHARGE, chargeAmount)
         );

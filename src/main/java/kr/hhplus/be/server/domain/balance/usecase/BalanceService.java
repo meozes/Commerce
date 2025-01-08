@@ -5,7 +5,9 @@ import kr.hhplus.be.server.domain.balance.exception.ChargeBalanceException;
 import kr.hhplus.be.server.domain.balance.validation.AmountValidator;
 import kr.hhplus.be.server.domain.balance.validation.UserIdValidator;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.orm.ObjectOptimisticLockingFailureException;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
@@ -40,17 +42,16 @@ public class BalanceService {
         userIdValidator.validate(command.getUserId());
         amountValidator.validateChargeAmount(command.getChargeAmount());
 
-        Balance balance = balanceRepository.getBalance(command.getUserId())
-                .orElseGet(() -> createBalance(command.getUserId()));
+        Balance balance = balanceRepository.getBalanceWithLock(command.getUserId());
+        if (balance == null) {
+            balance = createBalance(command.getUserId());
+        }
+
 
         Integer beforeBalance = balance.getBalance();
         balance.charge(command.getChargeAmount());
+        balance = balanceRepository.save(balance);
 
-        try {
-            balance = balanceRepository.save(balance);
-        } catch (ObjectOptimisticLockingFailureException e) {
-            throw new ChargeBalanceException("충전 처리 중 오류 발생. 다시 시도해주세요.");
-        }
 
         historyRepository.saveHistory(
                 beforeBalance,

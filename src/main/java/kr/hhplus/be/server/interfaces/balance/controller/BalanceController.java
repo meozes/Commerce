@@ -21,7 +21,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("api/balance")
 public class BalanceController {
 
-    private BalanceService balanceService;
+    private final BalanceService balanceService;
 
     @Operation(summary = "잔고 조회", description = "잔고를 조회합니다.")
     @GetMapping("/{userId}")
