@@ -9,7 +9,10 @@ import org.springframework.transaction.PlatformTransactionManager;
 
 @Configuration
 @EnableJpaAuditing
-@EnableJpaRepositories
+@EnableJpaRepositories(
+        basePackages = "kr.hhplus.be.server.infra",  // JPA Repository 구현체가 있는 패키지
+        considerNestedRepositories = true
+)
 public class JpaConfig {
 
     @Bean
