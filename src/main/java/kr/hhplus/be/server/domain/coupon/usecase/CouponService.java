@@ -50,6 +50,9 @@ public class CouponService {
 
         //coupon 수량 확인
         Coupon coupon = couponRepository.getCouponWithLock(command.getCouponId());
+        if (coupon == null) {
+            throw new EntityNotFoundException("존재하지 않는 쿠폰입니다. id=" + command.getCouponId());
+        }
         couponValidator.validateCouponQuantity(coupon);
 
         //coupon 발급
