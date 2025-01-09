@@ -96,7 +96,7 @@
 <img width="1459" alt="image" src="https://github.com/user-attachments/assets/60aaa3e0-3c84-4039-90f7-3ddb0d9d2f19" />
 </div>
 </details>
-<details>
+
 
 
 
