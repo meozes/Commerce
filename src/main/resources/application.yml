@@ -17,11 +17,15 @@ spring:
     show-sql: true
     hibernate:
       ddl-auto: create
+#    defer-datasource-initialization: true
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
       hibernate:
         format_sql: true
+#  sql:
+#    init:
+#      mode: always
 
 ---
 spring.config.activate.on-profile: local, test

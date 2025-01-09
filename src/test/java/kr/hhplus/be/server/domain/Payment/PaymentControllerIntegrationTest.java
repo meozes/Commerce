@@ -132,7 +132,7 @@ class PaymentControllerIntegrationTest {
         Balance balance = createAndSaveBalance();
 
         // 4. 결제 요청 데이터 설정
-        PaymentRequest request = new PaymentRequest(1L, order.getId(), 10000);
+        PaymentRequest request = new PaymentRequest(111L, order.getId(), 10000);
         doNothing().when(orderEventSender).send(any(Order.class));
 
         // when
@@ -193,7 +193,7 @@ class PaymentControllerIntegrationTest {
 
     private Balance createAndSaveBalance() {
         Balance balance = Balance.builder()
-                .userId(1L)
+                .userId(111L)
                 .balance(20000)
                 .build();
         return balanceRepository.save(balance);
@@ -204,7 +204,7 @@ class PaymentControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.paymentId").exists())
                 .andExpect(jsonPath("$.data.status").value("COMPLETED"))
                 .andExpect(jsonPath("$.data.amount").value(10000))
-                .andExpect(jsonPath("$.data.userId").value(1L))
+                .andExpect(jsonPath("$.data.userId").value(111L))
                 .andDo(print());
     }
 
@@ -291,18 +291,15 @@ class PaymentControllerIntegrationTest {
             transactionTemplate.execute(status -> {
                 try {
                     firstTransactionStarted.countDown();
-                    log.info("First transaction started");
 
                     Stock lockedStock = stockRepository.getStockWithLock(product.getId());
                     firstLockTime.set(LocalDateTime.now());
-                    log.info("First transaction acquired lock");
 
                     lockAcquiredLatch.countDown();
                     Thread.sleep(3000); // 3초 대기
 
                     lockedStock.deductStock(2);
                     stockRepository.save(lockedStock);
-                    log.info("First transaction completed deduction");
 
                     return null;
                 } catch (InterruptedException e) {
@@ -317,16 +314,11 @@ class PaymentControllerIntegrationTest {
                 firstTransactionStarted.await(); // 첫 번째 트랜잭션이 시작될 때까지 대기
                 lockAcquiredLatch.await(); // 첫 번째 트랜잭션이 락을 획득할 때까지 대기
 
-                log.info("Second transaction attempting to acquire lock");
-
                 transactionTemplate.execute(status -> {
                     Stock lockedStock = stockRepository.getStockWithLock(product.getId());
                     secondLockTime.set(LocalDateTime.now());
-                    log.info("Second transaction acquired lock");
-
                     lockedStock.deductStock(2);
                     stockRepository.save(lockedStock);
-                    log.info("Second transaction completed deduction");
 
                     secondTransactionComplete.countDown();
                     return null;

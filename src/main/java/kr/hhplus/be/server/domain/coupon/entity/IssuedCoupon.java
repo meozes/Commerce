@@ -30,6 +30,7 @@ public class IssuedCoupon extends BaseTimeEntity {
     @JoinColumn(name = "order_id")
     private Order order;
 
+    @Enumerated(EnumType.STRING)
     private CouponStatusType couponStatus;
 
     private LocalDateTime issuedAt;

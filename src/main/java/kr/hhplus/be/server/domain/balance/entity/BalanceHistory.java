@@ -1,10 +1,7 @@
 package kr.hhplus.be.server.domain.balance.entity;
 
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.balance.type.TransactionType;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import lombok.*;
@@ -22,6 +19,7 @@ public class BalanceHistory extends BaseTimeEntity {
 
     private Long balanceId;
 
+    @Enumerated(EnumType.STRING)
     private TransactionType type;
 
     private Integer amount;

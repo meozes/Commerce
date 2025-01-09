@@ -172,7 +172,7 @@ class BalanceControllerIntegrationTest {
     @DisplayName("잔고 충전 API - 기존 잔고가 있는 사용자 충전시 잔고가 합산된다")
     void chargeBalance_ExistingBalance_AddToCurrentBalance() throws Exception {
         // given
-        Long userId = 1L;
+        Long userId = 11L;
         Integer initialBalance = 10000;
         Balance balance = Balance.builder()
                 .userId(userId)

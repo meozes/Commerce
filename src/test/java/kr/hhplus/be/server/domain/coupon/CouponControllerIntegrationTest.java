@@ -240,7 +240,7 @@ class CouponControllerIntegrationTest {
     void issueCouponConcurrently() throws Exception {
         // given
         int numberOfThreads = 3;
-        List<Long> userIds = Arrays.asList(2L, 3L, 4L); // 서로 다른 3명의 사용자
+        List<Long> userIds = Arrays.asList(5L, 6L, 7L); // 서로 다른 3명의 사용자
         Long couponId = savedCouponId;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         CountDownLatch latch = new CountDownLatch(numberOfThreads);

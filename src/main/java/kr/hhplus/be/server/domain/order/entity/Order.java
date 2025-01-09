@@ -24,6 +24,7 @@ public class Order extends BaseTimeEntity {
 
     private Integer discountAmount;
 
+    @Enumerated(EnumType.STRING)
     private OrderStatusType orderStatus;
 
     public void complete() {

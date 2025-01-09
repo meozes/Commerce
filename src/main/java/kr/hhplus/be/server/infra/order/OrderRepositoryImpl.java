@@ -10,10 +10,6 @@ import java.util.Optional;
 
 @Repository
 public interface OrderRepositoryImpl extends JpaRepository<Order, Long>, OrderRepository {
-//    @Override
-//    default Order save(Order order) {
-//        return saveAndFlush(order);
-//    }
 
     @Override
     default Order getOrder(Long orderId) {
@@ -23,6 +19,6 @@ public interface OrderRepositoryImpl extends JpaRepository<Order, Long>, OrderRe
 
     @Override
     default Optional<Order> findById(Long id) {
-        return Optional.of(getOne(id));
+        return Optional.of(getReferenceById(id));
     }
 }
