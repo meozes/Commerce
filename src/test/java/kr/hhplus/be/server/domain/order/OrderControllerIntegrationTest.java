@@ -218,7 +218,7 @@ class OrderControllerIntegrationTest {
 
 
     @Test
-    @DisplayName("주문 생성 성공 테스트")
+    @DisplayName("주문 생성 API - 주문 생성이 성공한다.")
     void createOrderSuccess() throws Exception {
         // given
         Long userId = 1L;
@@ -277,7 +277,7 @@ class OrderControllerIntegrationTest {
 
 
     @Test
-    @DisplayName("재고 부족 시 주문 실패 테스트")
+    @DisplayName("주문 생성 API - 재고 부족 시 주문이 실패한다.")
     void createOrderFailWhenInsufficientStock() throws Exception {
         // given
         Long userId = 2L;
@@ -312,7 +312,7 @@ class OrderControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 쿠폰으로 주문 시도시 실패")
+    @DisplayName("주문 생성 API - 존재하지 않는 쿠폰으로 주문 시도 시 실패한다.")
     void createOrderFailWithInvalidCoupon() throws Exception {
         // given
         Long userId = 1L;
@@ -348,7 +348,7 @@ class OrderControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("만료된 쿠폰으로 주문 시도시 실패")
+    @DisplayName("주문 생성 API - 만료된 쿠폰으로 주문 시도 시 실패한다.")
     void createOrderFailWithExpiredCoupon() throws Exception {
         // given
         Long userId = 3L;
@@ -384,7 +384,7 @@ class OrderControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("이미 사용된 쿠폰으로 주문 시도시 실패")
+    @DisplayName("주문 생성 API - 이미 사용된 쿠폰으로 주문 시도 시 실패한다.")
     void createOrderFailWithUsedCoupon() throws Exception {
         // given
         Long userId = 4L;

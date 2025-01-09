@@ -5,6 +5,7 @@ import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
 import kr.hhplus.be.server.domain.balance.dto.ChargeCommand;
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.entity.BalanceHistory;
+import kr.hhplus.be.server.domain.balance.exception.NotEnoughBalanceException;
 import kr.hhplus.be.server.domain.balance.type.TransactionType;
 import kr.hhplus.be.server.domain.balance.repository.BalanceHistoryRepository;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
@@ -291,7 +292,7 @@ class BalanceServiceTest {
         when(balanceRepository.save(any(Balance.class))).thenReturn(newBalance);
 
         // then
-        assertThrows(InsufficientBalanceException.class, () ->
+        assertThrows(NotEnoughBalanceException.class, () ->
                 balanceService.deductBalance(userId, deductAmount)
         );
 
@@ -321,7 +322,7 @@ class BalanceServiceTest {
         when(balanceRepository.getBalanceWithLock(userId)).thenReturn(balance);
 
         // then
-        assertThrows(InsufficientBalanceException.class, () ->
+        assertThrows(NotEnoughBalanceException.class, () ->
                 balanceService.deductBalance(userId, deductAmount)
         );
 

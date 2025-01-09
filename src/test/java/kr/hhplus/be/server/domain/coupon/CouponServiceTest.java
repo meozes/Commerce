@@ -102,7 +102,7 @@ public class CouponServiceTest {
         // when
         doThrow(new IllegalArgumentException("유효하지 않은 유저 ID 입니다."))
                 .when(couponValidator)
-                .validateUserId(invalidUserId);  // any() 대신 실제 값 사용
+                .validateUserId(invalidUserId);
 
         // then
         assertThrows(IllegalArgumentException.class, () -> {

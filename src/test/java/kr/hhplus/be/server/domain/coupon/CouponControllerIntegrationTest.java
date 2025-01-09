@@ -28,6 +28,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -91,7 +93,7 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("사용자의 쿠폰 목록을 정상적으로 조회한다")
+    @DisplayName("쿠폰 목록 조회 API - 사용자의 쿠폰 목록을 정상적으로 조회한다")
     void getCoupons() throws Exception {
         // given
         Long userId = 1L;
@@ -118,7 +120,7 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 사용자의 쿠폰 목록을 조회하면 빈 페이지를 반환한다")
+    @DisplayName("쿠폰 목록 조회 API - 존재하지 않는 사용자의 쿠폰 목록을 조회하면 빈 페이지를 반환한다")
     void getCouponsWithNonExistentUser() throws Exception {
         // given
         Long nonExistentUserId = 999L;
@@ -141,7 +143,7 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("쿠폰을 정상적으로 발급한다")
+    @DisplayName("쿠폰 발급 API - 쿠폰을 정상적으로 발급한다")
     void issueCoupon() throws Exception {
         // given
         Long userId = 3L;
@@ -170,7 +172,7 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 쿠폰 발급 시 예외가 발생한다")
+    @DisplayName("쿠폰 발급 API - 존재하지 않는 쿠폰 발급 시 예외가 발생한다")
     void issueCouponWithNonExistentCoupon() throws Exception {
         // given
         Long userId = 1L;
@@ -189,7 +191,7 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("잘못된 사용자 ID로 쿠폰 발급 시 예외가 발생한다")
+    @DisplayName("쿠폰 발급 API - 잘못된 사용자 ID로 쿠폰 발급 시 예외가 발생한다")
     void issueCouponWithInvalidUserId() throws Exception {
         // given
         Long invalidUserId = -1L;
@@ -208,7 +210,7 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("수량이 모두 소진된 쿠폰 발급 시 예외가 발생한다")
+    @DisplayName("쿠폰 발급 API - 수량이 모두 소진된 쿠폰 발급 시 예외가 발생한다")
     void issueCouponWithNoQuantity() throws Exception {
         // given
         Long userId = 1L;
@@ -234,17 +236,17 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("동일한 쿠폰을 동시에 여러 번 발급 요청해도 정상적으로 처리된다")
+    @DisplayName("쿠폰 발급 API - 동시성 테스트. 서로 다른 3명의 사용자가 동일한 쿠폰을 동시에 발급 요청하면 정상적으로 처리된다")
     void issueCouponConcurrently() throws Exception {
         // given
         int numberOfThreads = 3;
-        Long userId = 2L;
-        Long couponId = savedCouponId; // setUp에서 생성한 쿠폰의 ID
+        List<Long> userIds = Arrays.asList(2L, 3L, 4L); // 서로 다른 3명의 사용자
+        Long couponId = savedCouponId;
         ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
         CountDownLatch latch = new CountDownLatch(numberOfThreads);
 
         // when
-        for (int i = 0; i < numberOfThreads; i++) {
+        for (Long userId : userIds) {
             executorService.submit(() -> {
                 try {
                     mockMvc.perform(
@@ -263,11 +265,14 @@ class CouponControllerIntegrationTest {
 
         // then
         Coupon updatedCoupon = couponRepository.getCoupon(couponId);
-        assertThat(updatedCoupon.getRemainingQuantity()).isEqualTo(97);
+        assertThat(updatedCoupon.getRemainingQuantity()).isEqualTo(97); // 100 - 3
 
-        Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.getIssuedCoupons(
-                PageRequest.of(0, 10), userId);
-        assertThat(issuedCoupons.getContent()).hasSize(3);
+        // 각 사용자별로 쿠폰 발급 여부 확인
+        for (Long userId : userIds) {
+            Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.getIssuedCoupons(
+                    PageRequest.of(0, 10), userId);
+            assertThat(issuedCoupons.getContent()).hasSize(1); // 각 사용자당 1개씩만 발급되어야 함
+        }
     }
 
 

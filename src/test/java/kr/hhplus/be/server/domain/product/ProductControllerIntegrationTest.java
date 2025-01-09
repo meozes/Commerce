@@ -106,7 +106,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("상품 단건 조회 성공")
+    @DisplayName("상품 단건 조회 API - 상품 단건 조회 성공한다.")
     void getProduct_success() throws Exception {
         // given
         Product savedProduct = productRepository.findAll().get(0);
@@ -128,7 +128,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 상품 조회시 EntityNotFoundException 발생")
+    @DisplayName("상품 단건 조회 API - 존재하지 않는 상품 조회시 예외 발생한다.")
     void getProduct_notFound() throws Exception {
         // when
         ResultActions result = mockMvc.perform(
@@ -146,7 +146,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("존재하지 않는 상품 조회시 400 에러 발생")
+    @DisplayName("상품 단건 조회 API - 존재하지 않는 상품 조회시 예외 발생한다.")
     void getProduct_invalidId() throws Exception {
         // when
         ResultActions result = mockMvc.perform(
@@ -164,7 +164,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("상품 페이징 조회 성공")
+    @DisplayName("상품 다건 조회 API - 상품 페이징하여 조회 성공한다.")
     void getProducts_success() throws Exception {
         // when
         ResultActions result = mockMvc.perform(
@@ -186,7 +186,7 @@ class ProductControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("3일간 인기 상품 5개 조회 성공")
+    @DisplayName("인기 상품 조회 API - 3일간 인기 상품 5개 조회 성공한다.")
     void getTop5Products_success() throws Exception {
         // given
         Order order = Order.builder()
