@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.balance.entity;
 
 import jakarta.persistence.*;
+import kr.hhplus.be.server.domain.balance.exception.NotEnoughBalanceException;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import lombok.*;
@@ -47,7 +48,7 @@ public class Balance extends BaseTimeEntity {
 
     private void validateSufficientBalance(Integer amount) {
         if (this.balance < amount) {
-            throw new InsufficientBalanceException("잔액이 부족합니다.");
+            throw new NotEnoughBalanceException("잔액이 부족합니다.");
         }
     }
 }

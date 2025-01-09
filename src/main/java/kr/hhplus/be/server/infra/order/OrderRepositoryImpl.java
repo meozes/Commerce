@@ -6,6 +6,8 @@ import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.Optional;
+
 @Repository
 public interface OrderRepositoryImpl extends JpaRepository<Order, Long>, OrderRepository {
 //    @Override
@@ -16,6 +18,11 @@ public interface OrderRepositoryImpl extends JpaRepository<Order, Long>, OrderRe
     @Override
     default Order getOrder(Long orderId) {
         return findById(orderId)
-                .orElseThrow(() -> new EntityNotFoundException("Order not found with id: " + orderId));
+                .orElseThrow(() -> new EntityNotFoundException("해당 주문이 존재하지 않습니다. " + orderId));
+    }
+
+    @Override
+    default Optional<Order> findById(Long id) {
+        return Optional.of(getOne(id));
     }
 }

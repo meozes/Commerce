@@ -18,7 +18,7 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    @Transactional
     public Payment createPayment(PaymentCommand command, Order order) {
         if (!Objects.equals(order.getFinalAmount(), command.getAmount())){
             throw new IllegalArgumentException("결제 금액 요청 금액이 최종 주문 금액과 다릅니다.");
@@ -31,13 +31,12 @@ public class PaymentService {
                 .paymentStatus(PaymentStatusType.PENDING)
                 .build();
 
-        payment = paymentRepository.save(payment);
-        return payment;
-
+        return paymentRepository.save(payment);
     }
 
-    public void completePayment(Payment payment, PaymentStatusType type) {
+    @Transactional
+    public Payment completePayment(Payment payment, PaymentStatusType type) {
         payment.complete(type);
-        paymentRepository.save(payment);
+        return paymentRepository.save(payment);
     }
 }

@@ -7,9 +7,11 @@ import kr.hhplus.be.server.domain.product.exception.InsufficientStockException;
 import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class StockService {
@@ -19,9 +21,13 @@ public class StockService {
     @Transactional
     public void validateAndDeductStock(Long productId, int quantity) {
 
+        log.info("재고 차감 시작: productId={}, quantity={}, thread={}",
+                productId, quantity, Thread.currentThread().getName());
         Product product = productRepository.getProduct(productId)
                 .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. productId: " + productId));
         Stock stock = stockRepository.getStockWithLock(productId);
+        log.info("락 획득 완료: productId={}, thread={}",
+                productId, Thread.currentThread().getName());
         if (stock == null) {
             throw new EntityNotFoundException("재고 정보를 찾을 수 없습니다. productId: " + productId);
         }

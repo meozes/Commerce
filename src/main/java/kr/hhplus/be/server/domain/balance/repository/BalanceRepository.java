@@ -22,4 +22,6 @@ public interface BalanceRepository {
     Balance getBalanceWithLock(@Param("userId") Long userId);
 
     Balance save(Balance balance);
+
+    Optional<Balance> findById(Long id);
 }

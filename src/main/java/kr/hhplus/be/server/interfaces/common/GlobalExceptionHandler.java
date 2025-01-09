@@ -2,6 +2,7 @@ package kr.hhplus.be.server.interfaces.common;
 
 import jakarta.persistence.EntityNotFoundException;
 import kr.hhplus.be.server.domain.balance.exception.ChargeBalanceException;
+import kr.hhplus.be.server.domain.payment.dto.PaymentInfo;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import kr.hhplus.be.server.domain.product.exception.InsufficientStockException;
 import org.springframework.dao.InvalidDataAccessApiUsageException;
@@ -44,8 +45,8 @@ public class GlobalExceptionHandler {
     }
 
     @ExceptionHandler(InsufficientBalanceException.class)
-    public ResponseEntity<ApiResponse<Void>> handleInsufficientBalanceException(InsufficientBalanceException e) {
-        ApiResponse<Void> response = ApiResponse.of(HttpStatus.CONFLICT, e.getMessage(), null);
+    public ResponseEntity<ApiResponse<PaymentInfo>> handleInsufficientBalanceException(InsufficientBalanceException e) {
+        ApiResponse<PaymentInfo> response = ApiResponse.of(HttpStatus.CONFLICT, e.getMessage(), e.getPaymentInfo());
         return ResponseEntity.status(HttpStatus.CONFLICT).body(response);
     }
 
