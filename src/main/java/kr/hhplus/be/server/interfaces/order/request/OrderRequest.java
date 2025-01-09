@@ -3,14 +3,16 @@ package kr.hhplus.be.server.interfaces.order.request;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
 
 @Getter
-@AllArgsConstructor
+@Builder
 @NoArgsConstructor
+@AllArgsConstructor
 public class OrderRequest {
     @NotNull(message = "사용자 ID는 필수입니다.")
     private Long userId;

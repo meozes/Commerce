@@ -10,6 +10,8 @@ import java.util.Optional;
 
 
 public interface IssuedCouponRepository {
+    IssuedCoupon save(IssuedCoupon issuedCoupon);
+
     Page<IssuedCoupon> getIssuedCoupons(PageRequest pageRequest, Long userId);
     IssuedCoupon saveIssuedCoupon(IssuedCoupon issuedCoupon);
 

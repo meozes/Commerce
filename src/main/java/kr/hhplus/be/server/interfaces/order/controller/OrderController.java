@@ -16,14 +16,14 @@ import org.springframework.web.bind.annotation.*;
 
 @Tag(name = "주문 API", description = "주문 생성 API")
 @RestController
-@RequestMapping("api/orders")
+@RequestMapping("api")
 @RequiredArgsConstructor
 public class OrderController {
 
     private final OrderFacade orderFacade;
 
     @Operation(summary = "주문 생성", description = "주문 요청합니다.")
-    @PostMapping()
+    @PostMapping("/orders")
     public ApiResponse<OrderResponse> createOrder(
             @Parameter(description = "주문 요청 정보")
             @Valid @RequestBody OrderRequest request

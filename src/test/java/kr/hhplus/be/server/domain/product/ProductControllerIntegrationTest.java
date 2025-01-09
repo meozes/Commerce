@@ -14,8 +14,6 @@ import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.context.TestConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
@@ -85,15 +83,6 @@ class ProductControllerIntegrationTest {
         mysql.stop();
     }
 
-    @TestConfiguration
-    static class TestConfig {
-        @Bean
-        public OrderService orderService(OrderRepository orderRepository,
-                                         OrderItemRepository orderItemRepository) {
-            return new OrderService(orderRepository, orderItemRepository);
-        }
-    }
-
     @BeforeEach
     void setUp() {
         // 테스트 데이터 세팅
@@ -149,11 +138,11 @@ class ProductControllerIntegrationTest {
         );
 
         // then
-        result.andExpect(status().isBadRequest())
-                .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
+        result.andExpect(status().isNotFound())
+                .andExpect(jsonPath("$.status").value("NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("해당 상품이 존재하지 않습니다."))
                 .andExpect(jsonPath("$.data").isEmpty())
-                .andExpect(jsonPath("$.code").value(400));
+                .andExpect(jsonPath("$.code").value(404));
     }
 
     @Test

@@ -184,7 +184,7 @@ class CouponControllerIntegrationTest {
         );
 
         // then
-        result.andExpect(status().isBadRequest())
+        result.andExpect(status().isNotFound())
                 .andDo(print());
     }
 
