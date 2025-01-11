@@ -1,0 +1,82 @@
+--INSERT INTO coupon (coupon_name, discount_amount, original_quantity, remaining_quantity, due_date, created_at, updated_at) VALUES
+--('신규가입 할인쿠폰', 3000, 100, 100, '2024-12-31', NOW(), NOW()),
+--('여름방학 특별할인', 5000, 50, 50, '2025-08-31', NOW(), NOW()),
+--('크리스마스 할인쿠폰', 10000, 30, 30, '2025-12-25', NOW(), NOW()),
+--('추석맞이 할인쿠폰', 7000, 80, 80, '2025-09-15', NOW(), NOW()),
+--('첫 구매 할인쿠폰', 2000, 200, 200, '2024-12-31', NOW(), NOW());
+--
+--INSERT INTO issued_coupon (user_id, coupon_id, coupon_status, issued_at, created_at, updated_at) VALUES
+--(1, 1, 'NEW', '2024-01-01 10:00:00', NOW(), NOW()),
+--(1, 2, 'USED', '2024-01-02 11:00:00', NOW(), NOW()),
+--(2, 1, 'NEW', '2024-01-03 12:00:00', NOW(), NOW()),
+--(2, 3, 'USED', '2024-01-04 13:00:00', NOW(), NOW()),
+--(3, 4, 'NEW', '2024-01-05 14:00:00', NOW(), NOW());
+--
+--INSERT INTO product (product_name, price, created_at, updated_at)
+--VALUES
+--    ('iPhone 15', 1200000, NOW(), NOW()),
+--    ('Galaxy S24', 1300000, NOW(), NOW()),
+--    ('MacBook Pro', 2500000, NOW(), NOW()),
+--    ('iPad Air', 800000, NOW(), NOW()),
+--    ('Galaxy Watch', 400000, NOW(), NOW());
+--
+--INSERT INTO stock (product_id, origin_stock, remaining_stock, created_at, updated_at)
+--VALUES
+--    (1, 100, 100, NOW(), NOW()),
+--    (2, 150, 150, NOW(), NOW()),
+--    (3, 50, 50, NOW(), NOW()),
+--    (4, 200, 200, NOW(), NOW()),
+--    (5, 300, 300, NOW(), NOW());
+--
+--INSERT INTO balance (user_id, balance, created_at, updated_at)
+--VALUES
+--    (1, 1000000, NOW(), NOW()),
+--    (2, 500000, NOW(), NOW());
+--
+--INSERT INTO balance_history (balance_id, type, amount, total_amount, created_at, updated_at)
+--VALUES
+--    (1, 'CHARGE', 1000000, 1000000, NOW(), NOW()),
+--    (1, 'USE', 150000, 850000, NOW(), NOW()),
+--    (1, 'CHARGE', 200000, 1050000, NOW(), NOW()),
+--    (1, 'USE', 50000, 1000000, NOW(), NOW());
+--
+--INSERT INTO balance_history (balance_id, type, amount, total_amount, created_at, updated_at)
+--VALUES
+--    (2, 'CHARGE', 500000, 500000, NOW(), NOW()),
+--    (2, 'USE', 100000, 400000, NOW(), NOW()),
+--    (2, 'CHARGE', 100000, 500000, NOW(), NOW());
+--
+--
+--INSERT INTO orders (user_id, original_amount, final_amount, discount_amount, order_status, created_at, updated_at)
+--VALUES
+--    -- 사용자 1의 주문들
+--    (1, 1200000, 1197000, 3000, 'COMPLETED', '2024-01-01 10:30:00', '2024-01-01 10:30:00'),
+--    (1, 2500000, 2500000, 0, 'COMPLETED', '2024-01-02 15:45:00', '2024-01-02 15:45:00'),
+--    (1, 400000, 400000, 0, 'PENDING', '2024-01-03 09:15:00', '2024-01-03 09:15:00'),
+--
+--    -- 사용자 2의 주문들
+--    (2, 1300000, 1290000, 10000, 'COMPLETED', '2024-01-02 11:20:00', '2024-01-02 11:20:00'),
+--    (2, 800000, 800000, 0, 'CANCELED', '2024-01-03 14:30:00', '2024-01-03 14:30:00');
+--
+--
+--INSERT INTO order_item (order_id, product_id, product_name, quantity, product_price, total_price, created_at, updated_at)
+--VALUES
+--    -- 사용자 1의 주문 아이템들
+--    (1, 1, 'iPhone 15', 1, 1200000, 1200000, '2024-01-01 10:30:00', '2024-01-01 10:30:00'),
+--    (2, 3, 'MacBook Pro', 1, 2500000, 2500000, '2024-01-02 15:45:00', '2024-01-02 15:45:00'),
+--    (3, 5, 'Galaxy Watch', 1, 400000, 400000, '2024-01-03 09:15:00', '2024-01-03 09:15:00'),
+--
+--    -- 사용자 2의 주문 아이템들
+--    (4, 2, 'Galaxy S24', 1, 1300000, 1300000, '2024-01-02 11:20:00', '2024-01-02 11:20:00'),
+--    (5, 4, 'iPad Air', 1, 800000, 800000, '2024-01-03 14:30:00', '2024-01-03 14:30:00');
+--
+-- INSERT INTO payment (order_id, user_id, amount, payment_status, created_at, updated_at)
+-- VALUES
+--     -- 사용자 1의 결제들
+--     (1, 1, 1197000, 'COMPLETED', '2024-01-01 10:31:00', '2024-01-01 10:31:00'),
+--     (2, 1, 2500000, 'COMPLETED', '2024-01-02 15:46:00', '2024-01-02 15:46:00'),
+--     (3, 1, 400000, 'PENDING', '2024-01-03 09:15:00', '2024-01-03 09:15:00'),
+--
+--     -- 사용자 2의 결제들
+--     (4, 2, 1290000, 'COMPLETED', '2024-01-02 11:21:00', '2024-01-02 11:21:00'),
+--     (5, 2, 800000, 'FAILED', '2024-01-03 14:31:00', '2024-01-03 14:31:00');

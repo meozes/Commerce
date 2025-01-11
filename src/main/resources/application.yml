@@ -14,12 +14,18 @@ spring:
   jpa:
     open-in-view: false
     generate-ddl: false
-    show-sql: false
+    show-sql: true
     hibernate:
-      ddl-auto: none
+      ddl-auto: create
+#    defer-datasource-initialization: true
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
+      hibernate:
+        format_sql: true
+#  sql:
+#    init:
+#      mode: always
 
 ---
 spring.config.activate.on-profile: local, test
@@ -29,3 +35,18 @@ spring:
     url: jdbc:mysql://localhost:3306/hhplus?characterEncoding=UTF-8&serverTimezone=UTC
     username: application
     password: application
+
+springdoc:
+  swagger-ui:
+    path: /swagger  # Swagger UI 경로 설정
+    groups-order: DESC
+    operationsSorter: method
+    disable-swagger-default-url: true
+    display-request-duration: true
+  api-docs:
+    path: /api-docs
+  show-actuator: true
+  default-consumes-media-type: application/json
+  default-produces-media-type: application/json
+  paths-to-match:
+    - /api/**
