@@ -30,6 +30,9 @@ public class BalanceService {
     private final UserIdValidator userIdValidator;
     private final AmountValidator amountValidator;
 
+    /**
+     * 잔고 조회하기
+     */
     public BalanceInfo getBalance(BalanceQuery balanceQuery) {
         userIdValidator.validate(balanceQuery.getUserId());
         Balance balance = balanceRepository.getBalance(balanceQuery.getUserId())
@@ -37,6 +40,9 @@ public class BalanceService {
         return BalanceInfo.from(balance);
     }
 
+    /**
+     * 잔액 충전하기
+     */
     @Transactional
     public BalanceInfo chargeBalance(ChargeCommand command) {
         userIdValidator.validate(command.getUserId());
@@ -47,11 +53,9 @@ public class BalanceService {
             balance = createBalance(command.getUserId());
         }
 
-
         Integer beforeBalance = balance.getBalance();
         balance.charge(command.getChargeAmount());
         balance = balanceRepository.save(balance);
-
 
         historyRepository.saveHistory(
                 beforeBalance,
@@ -63,6 +67,9 @@ public class BalanceService {
         return BalanceInfo.from(balance);
     }
 
+    /**
+     * 금액 차감하기
+     */
     @Transactional
     public BalanceInfo deductBalance(Long userId, Integer amount) {
         userIdValidator.validate(userId);
@@ -87,6 +94,9 @@ public class BalanceService {
         return BalanceInfo.from(balance);
     }
 
+    /**
+     * 계좌 만들기
+     */
     @Transactional
     public Balance createBalance(Long userId) {
         Balance balance = Balance.builder()
