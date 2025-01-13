@@ -30,7 +30,7 @@ public class Coupon extends BaseTimeEntity {
 
     private LocalDate dueDate;
 
-    public void issue() {
+    public void decreaseRemainingQuantity() {
         if (this.remainingQuantity <= 0) {
             throw new IllegalArgumentException("쿠폰이 모두 소진되었습니다. id=" + this.id);
         }

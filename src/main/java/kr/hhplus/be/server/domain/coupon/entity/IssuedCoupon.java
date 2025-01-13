@@ -26,7 +26,7 @@ public class IssuedCoupon extends BaseTimeEntity {
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
 
-    @ManyToOne(fetch = FetchType.LAZY)
+    @OneToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "order_id")
     private Order order;
 
@@ -39,18 +39,18 @@ public class IssuedCoupon extends BaseTimeEntity {
 
     public void use() {
         if (CouponStatusType.USED.equals(this.couponStatus)) {
-            throw new IllegalStateException("이미 사용된 쿠폰입니다. id=" + this.id);
+            throw new IllegalStateException("이미 사용된 쿠폰입니다. 사용 일자 = " + this.usedAt);
         }
 
         if (this.coupon.getDueDate().isBefore(LocalDate.now())) {
-            throw new IllegalStateException("만료된 쿠폰입니다. id=" + this.id);
+            throw new IllegalStateException("만료된 쿠폰입니다. 만료 일자 = " + this.coupon.getDueDate());
         }
 
         this.couponStatus = CouponStatusType.USED;
         this.usedAt = LocalDateTime.now();
     }
 
-    public void assignToOrder(Order order) {
+    public void assignOrderToCoupon(Order order) {
         this.order = order;
     }
 }

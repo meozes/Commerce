@@ -129,7 +129,7 @@ class OrderServiceTest {
         // then
         verify(orderRepository).save(any(Order.class));
         verify(orderItemRepository).saveAll(anyList());
-        verify(coupon).assignToOrder(any(Order.class));
+        verify(coupon).assignOrderToCoupon(any(Order.class));
 
         assertThat(result.getOrder().getDiscountAmount()).isEqualTo(2000);
         assertThat(result.getOrder().getFinalAmount()).isEqualTo(18000);

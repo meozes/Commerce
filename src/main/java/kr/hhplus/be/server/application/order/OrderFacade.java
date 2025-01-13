@@ -1,13 +1,13 @@
 package kr.hhplus.be.server.application.order;
 
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
 import kr.hhplus.be.server.domain.order.dto.OrderAmountInfo;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
 import kr.hhplus.be.server.domain.order.service.OrderAmountCalculator;
 import kr.hhplus.be.server.domain.order.usecase.*;
 import kr.hhplus.be.server.domain.order.validation.OrderBalanceValidation;
-import kr.hhplus.be.server.domain.order.validation.OrderCouponValidation;
 import kr.hhplus.be.server.domain.order.validation.OrderProductValidation;
 import kr.hhplus.be.server.domain.order.validation.OrderValidation;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +19,10 @@ import org.springframework.transaction.annotation.Transactional;
 public class OrderFacade {
     private final OrderService orderService;
     private final OrderBalanceValidation orderBalanceValidation;
-    private final OrderCouponValidation orderCouponValidation;
     private final OrderValidation orderValidation;
     private final OrderProductValidation orderProductValidation;
     private final OrderAmountCalculator orderAmountCalculator;
+    private final CouponService couponService;
 
     @Transactional
     public OrderInfo createOrder(OrderCommand command) {
@@ -35,10 +35,10 @@ public class OrderFacade {
         // 3. 재고 확인
         orderProductValidation.handleProduct(command.getOrderItems());
 
-        // 4. 쿠폰 유효성 체크, 사용처리
+        // 4. 쿠폰 사용처리
         IssuedCoupon coupon = null;
         if (command.getCouponId() != null) {
-            coupon = orderCouponValidation.handleCoupon(command.getCouponId());
+            coupon = couponService.useIssuedCoupon(command.getCouponId());
         }
 
         // 5. 금액 계산

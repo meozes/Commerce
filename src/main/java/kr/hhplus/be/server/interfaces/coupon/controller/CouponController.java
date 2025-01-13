@@ -32,7 +32,7 @@ public class CouponController {
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         CouponSearch couponSearch = CouponSearch.of(userId, page, size);
-        Page<CouponInfo> infos = couponService.getCoupons(couponSearch);
+        Page<CouponInfo> infos = couponService.getIssuedCoupons(couponSearch);
         Page<CouponResponse> responses = infos.map(CouponResponse::from);
         return ApiResponse.ok(responses);
     }

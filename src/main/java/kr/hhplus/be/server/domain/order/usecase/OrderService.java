@@ -52,7 +52,7 @@ public class OrderService {
         orderItems = orderItemRepository.saveAll(orderItems);
 
         if (issuedCoupon != null){
-            issuedCoupon.assignToOrder(savedOrder);
+            issuedCoupon.assignOrderToCoupon(savedOrder);
         }
 
         return OrderInfo.builder()

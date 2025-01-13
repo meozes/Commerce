@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.coupon;
 
+import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponSearch;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
@@ -30,6 +31,7 @@ import static org.mockito.Mockito.*;
 import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.List;
+import java.util.Optional;
 
 @ExtendWith(MockitoExtension.class)
 public class CouponServiceTest {
@@ -140,9 +142,47 @@ public class CouponServiceTest {
         verify(couponValidator).validateUserId(userId);
         verify(couponValidator).validateCouponQuantity(coupon);
         verify(couponRepository).getCouponWithLock(couponId);
-        verifyNoMoreInteractions(couponRepository);
-        verifyNoInteractions(issuedCouponRepository);
     }
+
+    @Test
+    @DisplayName("쿠폰 발급 내역 존재 - 발급 실패")
+    void issueCoupon_AlreadyIssued_ThrowsException() {
+        // given
+        Long userId = 1L;
+        Long couponId = 1L;
+
+        Coupon coupon = Coupon.builder()
+                .id(couponId)
+                .couponName("10% 할인 쿠폰")
+                .discountAmount(1000)
+                .build();
+        couponRepository.save(coupon);
+
+        IssuedCoupon issuedCoupon = IssuedCoupon.builder()
+                .id(1L)
+                .userId(userId)
+                .coupon(coupon)
+                .couponStatus(CouponStatusType.NEW)
+                .issuedAt(LocalDateTime.now())
+                .build();
+        issuedCouponRepository.save(issuedCoupon);
+
+        CouponCommand command = CouponCommand.of(userId, couponId);
+        doNothing().when(couponValidator).validateUserId(userId);
+        when(issuedCouponRepository.getIssuedCouponByCoupon(eq(command.getCouponId())))
+                .thenReturn(Optional.ofNullable(issuedCoupon));
+
+        // when
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+                couponService.issueCoupon(command)
+        );
+
+        assertAll(
+                () -> assertEquals("이미 발급받은 쿠폰입니다.", exception.getMessage())
+        );
+
+    }
+
 
     /**
      * 쿠폰 조회 테스트
@@ -177,9 +217,9 @@ public class CouponServiceTest {
         when(issuedCouponRepository.getIssuedCoupons(any(PageRequest.class), eq(userId)))
                 .thenReturn(issuedCouponPage);
         when(couponRepository.getCoupon(eq(couponId)))
-                .thenReturn(coupon);
+                .thenReturn(Optional.ofNullable(coupon));
 
-        Page<CouponInfo> result = couponService.getCoupons(couponSearch);
+        Page<CouponInfo> result = couponService.getIssuedCoupons(couponSearch);
 
         // then
         assertAll(
@@ -218,7 +258,7 @@ public class CouponServiceTest {
 
         // then
         assertThrows(IllegalArgumentException.class, () -> {
-            couponService.getCoupons(couponSearch);
+            couponService.getIssuedCoupons(couponSearch);
         });
 
         // verify

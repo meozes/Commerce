@@ -30,6 +30,7 @@ import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -99,7 +100,6 @@ class CouponControllerIntegrationTest {
         Long userId = 1L;
 
         // when
-
         ResultActions result = mockMvc.perform(
                 MockMvcRequestBuilders
                         .get("/api/coupons/{userId}", userId)
@@ -147,7 +147,8 @@ class CouponControllerIntegrationTest {
     void issueCoupon() throws Exception {
         // given
         Long userId = 3L;
-        Coupon coupon = couponRepository.getCoupon(savedCouponId); // setUp에서 생성한 쿠폰의 ID
+        Optional<Coupon> couponOptional = couponRepository.getCoupon(savedCouponId); // setUp에서 생성한 쿠폰의 ID
+        Coupon coupon = couponOptional.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
 
         // when
         ResultActions result = mockMvc.perform(
@@ -167,7 +168,8 @@ class CouponControllerIntegrationTest {
                 .andDo(print());
 
         // DB 검증
-        Coupon updatedCoupon = couponRepository.getCoupon(coupon.getId());
+        Optional<Coupon> updatedOptionalCoupon = couponRepository.getCoupon(coupon.getId());
+        Coupon updatedCoupon = updatedOptionalCoupon.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
         assertThat(updatedCoupon.getRemainingQuantity()).isEqualTo(99);
     }
 
@@ -264,7 +266,8 @@ class CouponControllerIntegrationTest {
         latch.await(10, TimeUnit.SECONDS);
 
         // then
-        Coupon updatedCoupon = couponRepository.getCoupon(couponId);
+        Optional<Coupon> updatedOptionalCoupon = couponRepository.getCoupon(couponId);
+        Coupon updatedCoupon = updatedOptionalCoupon.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
         assertThat(updatedCoupon.getRemainingQuantity()).isEqualTo(97); // 100 - 3
 
         // 각 사용자별로 쿠폰 발급 여부 확인
