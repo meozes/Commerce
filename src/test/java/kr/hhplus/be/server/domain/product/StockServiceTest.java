@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.product;
 
 import jakarta.persistence.EntityNotFoundException;
+import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.exception.InsufficientStockException;
@@ -14,6 +15,8 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -37,15 +40,24 @@ class StockServiceTest {
         Long productId = 1L;
         int quantity = 2;
         Product product = new Product(productId, "촉촉한 쿠키", 5000);
-        Stock stock = new Stock(1L, product, 10, 30);
+        Stock stock = new Stock(1L, product, 30, 20);
+
+        List<OrderItemCommand> itemList= new ArrayList<>();
+        OrderItemCommand item = OrderItemCommand.builder()
+                .productId(productId)
+                .productName(product.getProductName())
+                .price(product.getPrice())
+                .quantity(3)
+                .build();
+        itemList.add(item);
 
         when(stockRepository.getStockWithLock(productId)).thenReturn(stock);
 
         // when
-        stockService.deductStock(productId, quantity);
+        stockService.deductStock(itemList);
 
         // then
-        assertEquals(28, stock.getRemainingStock());
+        assertEquals(17, stock.getRemainingStock());
         verify(stockRepository).getStockWithLock(productId);
         verify(stockRepository).save(stock);
     }
@@ -57,11 +69,20 @@ class StockServiceTest {
         Long productId = 1L;
         Product product = new Product(productId, "촉촉한 쿠키", 5000);
 
+        List<OrderItemCommand> itemList= new ArrayList<>();
+        OrderItemCommand item = OrderItemCommand.builder()
+                .productId(productId)
+                .productName(product.getProductName())
+                .price(product.getPrice())
+                .quantity(3)
+                .build();
+        itemList.add(item);
+
         when(stockRepository.getStockWithLock(productId)).thenReturn(null);
 
         // when & then
         assertThrows(EntityNotFoundException.class,
-                () -> stockService.deductStock(productId, 1));
+                () -> stockService.deductStock(itemList));
         verify(stockRepository).getStockWithLock(productId);
     }
 
@@ -74,11 +95,20 @@ class StockServiceTest {
         Stock stock = new Stock(1L, product, 30, 5);
         int requestQuantity = 10;
 
+        List<OrderItemCommand> itemList= new ArrayList<>();
+        OrderItemCommand item = OrderItemCommand.builder()
+                .productId(productId)
+                .productName(product.getProductName())
+                .price(product.getPrice())
+                .quantity(requestQuantity)
+                .build();
+        itemList.add(item);
+
         when(stockRepository.getStockWithLock(productId)).thenReturn(stock);
 
         // when & then
         InsufficientStockException exception = assertThrows(InsufficientStockException.class,
-                () -> stockService.deductStock(productId, requestQuantity));
+                () -> stockService.deductStock(itemList));
 
         assertTrue(exception.getMessage().contains("상품의 재고가 부족합니다"));
         verify(stockRepository).getStockWithLock(productId);

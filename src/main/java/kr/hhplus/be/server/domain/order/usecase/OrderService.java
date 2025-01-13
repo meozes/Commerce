@@ -27,9 +27,11 @@ public class OrderService {
     private final OrderItemRepository orderItemRepository;
 
 
+    /**
+     * 주문 생성하기
+     */
     @Transactional
     public OrderInfo createOrder(OrderCommand command, Integer originalAmount, Integer discountAmount, Integer finalAmount, IssuedCoupon issuedCoupon) {
-
         Order order = Order.builder()
                 .userId(command.getUserId())
                 .originalAmount(originalAmount)
@@ -61,20 +63,32 @@ public class OrderService {
                 .build();
     }
 
-    public OrderInfo getOrder(Long orderId) {
-        return OrderInfo.from(orderRepository.getOrder(orderId));
-    }
-
+    /**
+     * 주문 완료하기
+     */
     @Transactional
     public Order completeOrder(Order order) {
         order.complete();
         return orderRepository.save(order);
     }
 
+    /**
+     * 주문 찾기
+     */
+    public OrderInfo getOrder(Long orderId) {
+        return OrderInfo.from(orderRepository.getOrder(orderId));
+    }
+
+    /**
+     * 주문 아이템 찾기
+     */
     public List<OrderItem> getOrderItems(Long orderId) {
         return orderItemRepository.getOrderItems(orderId);
     }
 
+    /**
+     * 주문에서 인기상품 찾기
+     */
     public List<ProductRankInfo> getTopProductsByOrderDate(LocalDate startDate, LocalDate endDate) {
         return orderItemRepository.findTopProductsByOrderDate(startDate, endDate);
     }

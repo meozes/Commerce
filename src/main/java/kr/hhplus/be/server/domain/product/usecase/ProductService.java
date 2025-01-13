@@ -1,11 +1,14 @@
 package kr.hhplus.be.server.domain.product.usecase;
 
 import jakarta.persistence.EntityNotFoundException;
+import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
+import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.product.dto.ProductInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductSearch;
 import kr.hhplus.be.server.domain.product.dto.ProductSearchQuery;
 import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.entity.Stock;
+import kr.hhplus.be.server.domain.product.exception.InsufficientStockException;
 import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
@@ -59,5 +62,18 @@ public class ProductService {
 
         return products.map(product ->
                 ProductInfo.of(product, stockMap.get(product.getId())));
+    }
+
+    /**
+     * 상품 존재 여부 확인
+     */
+    public void getOrderProduct(List<OrderItemCommand> orderItems) {
+        for (OrderItemCommand item : orderItems) {
+            ProductSearch productSearch = ProductSearch.of(item.getProductId());
+            ProductInfo productInfo = getProduct(productSearch);
+            if (productInfo == null) {
+                throw new EntityNotFoundException("상품을 찾을 수 없습니다. productId: " + item.getProductId());
+            }
+        }
     }
 }

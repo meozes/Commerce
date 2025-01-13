@@ -12,13 +12,10 @@ import kr.hhplus.be.server.domain.payment.entity.Payment;
 import kr.hhplus.be.server.domain.payment.type.PaymentStatusType;
 import kr.hhplus.be.server.domain.payment.usecase.PaymentService;
 import kr.hhplus.be.server.domain.payment.validation.PaymentOrderValidation;
-import kr.hhplus.be.server.domain.payment.validation.PaymentProductValidation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.transaction.interceptor.TransactionAspectSupport;
 
 @Slf4j
 @Service
@@ -28,7 +25,6 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final BalanceService balanceService;
     private final PaymentOrderValidation paymentOrderValidation;
-    private final PaymentProductValidation paymentProductValidation;
     private final OrderEventSender orderEventSender;
 
     @Transactional
@@ -43,9 +39,6 @@ public class PaymentFacade {
 
             //3. 잔고 조회, 차감
             balanceService.deductBalance(command.getUserId(), command.getAmount());
-
-            //4. 재고 확인, 재고 차감
-            paymentProductValidation.validateAndDeductStock(order.getId());
 
             //5. 주문 상태 업데이트
             Order updatedOrder = orderService.completeOrder(order);
