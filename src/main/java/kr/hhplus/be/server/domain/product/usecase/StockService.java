@@ -15,23 +15,18 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class StockService {
-    private final ProductRepository productRepository;
     private final StockRepository stockRepository;
 
+    /**
+     * 재고 차감하기
+     */
     @Transactional
-    public void validateAndDeductStock(Long productId, int quantity) {
+    public void deductStock(Long productId, int quantity) {
 
-        log.info("재고 차감 시작: productId={}, quantity={}, thread={}",
-                productId, quantity, Thread.currentThread().getName());
-        Product product = productRepository.getProduct(productId)
-                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. productId: " + productId));
         Stock stock = stockRepository.getStockWithLock(productId);
-        log.info("락 획득 완료: productId={}, thread={}",
-                productId, Thread.currentThread().getName());
         if (stock == null) {
             throw new EntityNotFoundException("재고 정보를 찾을 수 없습니다. productId: " + productId);
         }
-
         if (stock.getRemainingStock() < quantity) {
             throw new InsufficientStockException(
                     String.format("상품의 재고가 부족합니다. 상품ID: %d, 요청수량: %d, 재고수량: %d",
@@ -45,5 +40,4 @@ public class StockService {
         stock.deductStock(quantity);
         stockRepository.save(stock);
     }
-
 }

@@ -18,7 +18,7 @@ public class PaymentProductValidation {
     public void validateAndDeductStock(Long orderId) {
         List<OrderItem> items = orderService.getOrderItems(orderId);
         for (OrderItem item : items) {
-            stockService.validateAndDeductStock(item.getProductId(), item.getQuantity());
+            stockService.deductStock(item.getProductId(), item.getQuantity());
         }
     }
 }

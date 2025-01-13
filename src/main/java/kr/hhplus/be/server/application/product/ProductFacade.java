@@ -17,6 +17,9 @@ public class ProductFacade {
 
     private final OrderService orderService;
 
+    /**
+     * 3일간 인기상품 조회하기
+     */
     public List<ProductRankInfo> getTopProducts() {
         LocalDate today = LocalDate.now();
         LocalDate endDate = today;

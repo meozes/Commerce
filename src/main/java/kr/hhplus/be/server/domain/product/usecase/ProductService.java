@@ -23,6 +23,9 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final StockRepository stockRepository;
 
+    /**
+     * 상품 단건 조회하기
+     */
     public ProductInfo getProduct(ProductSearch productSearch) {
 
         if (productSearch.getProductId() < 0){
@@ -36,6 +39,9 @@ public class ProductService {
         return ProductInfo.of(product, stock);
     }
 
+    /**
+     * 상품 전체 조회하기
+     */
     public Page<ProductInfo> getProducts(ProductSearchQuery query) {
         Page<Product> products = productRepository.getProducts(query.toPageRequest());
 
