@@ -50,6 +50,9 @@ public class CouponService {
      */
     @Transactional
     public IssuedCoupon useIssuedCoupon(Long couponId) {
+        if (couponId == null){
+            return null;
+        }
         IssuedCoupon coupon = getIssuedCoupon(couponId);
         coupon.use();
         return coupon;

@@ -1,13 +1,7 @@
 package kr.hhplus.be.server.domain.balance.usecase;
 
-import jakarta.persistence.EntityNotFoundException;
-import kr.hhplus.be.server.domain.balance.exception.ChargeBalanceException;
 import kr.hhplus.be.server.domain.balance.validation.AmountValidator;
 import kr.hhplus.be.server.domain.balance.validation.UserIdValidator;
-import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
@@ -19,7 +13,6 @@ import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

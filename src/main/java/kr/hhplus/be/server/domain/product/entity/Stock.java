@@ -31,4 +31,9 @@ public class Stock extends BaseTimeEntity {
         }
         this.remainingStock = remainingQuantity;
     }
+
+    public void restoreStock(int quantity) {
+        int restoringQuantity = this.remainingStock + quantity;
+        this.remainingStock = restoringQuantity;
+    }
 }

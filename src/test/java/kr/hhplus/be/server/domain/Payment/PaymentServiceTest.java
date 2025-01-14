@@ -53,7 +53,7 @@ class PaymentServiceTest {
 
         Payment payment = Payment.builder()
                 .id(1L)
-                .order(order)
+                .orderId(order.getId())
                 .userId(1L)
                 .amount(10000)
                 .paymentStatus(PaymentStatusType.PENDING)
@@ -62,14 +62,14 @@ class PaymentServiceTest {
         when(paymentRepository.save(any(Payment.class))).thenReturn(payment);
 
         // when
-        Payment result = paymentService.createPayment(command, order);
+        Payment result = paymentService.completePayment(command, order);
 
         // then
         assertThat(result).isNotNull();
         assertThat(result.getPaymentStatus()).isEqualTo(PaymentStatusType.PENDING);
         assertThat(result.getAmount()).isEqualTo(command.getAmount());
         assertThat(result.getUserId()).isEqualTo(command.getUserId());
-        assertThat(result.getOrder()).isEqualTo(order);
+        assertThat(result.getOrderId()).isEqualTo(order.getId());
 
         verify(paymentRepository).save(any(Payment.class));
     }
@@ -96,30 +96,7 @@ class PaymentServiceTest {
 
         // when & then
         assertThatThrownBy(() ->
-                paymentService.createPayment(command, order))
+                paymentService.completePayment(command, order))
                 .isInstanceOf(IllegalArgumentException.class);
     }
-
-    /**
-     * 결제 처리 테스트
-     */
-    @Test
-    @DisplayName("결제 완료 처리 성공 - COMPLETED")
-    void completePayment_Success_Completed() {
-        // given
-        Payment payment = Payment.builder()
-                .id(1L)
-                .userId(1L)
-                .amount(10000)
-                .paymentStatus(PaymentStatusType.PENDING)
-                .build();
-
-        // when
-        paymentService.completePayment(payment, PaymentStatusType.COMPLETED);
-
-        // then
-        assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatusType.COMPLETED);
-        verify(paymentRepository).save(payment);
-    }
-
 }

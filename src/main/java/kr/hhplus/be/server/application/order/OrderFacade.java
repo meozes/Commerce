@@ -19,7 +19,7 @@ import org.springframework.transaction.annotation.Transactional;
 @Service
 @RequiredArgsConstructor
 public class OrderFacade {
-    private final OrderService orderService;
+    private final OrderCreateService orderCreateService;
     private final BalanceService balanceService;
     private final CouponService couponService;
     private final ProductService productService;
@@ -42,16 +42,13 @@ public class OrderFacade {
         stockService.deductStock(command.getOrderItems());
 
         // 4. 쿠폰 사용처리
-        IssuedCoupon coupon = null;
-        if (command.getCouponId() != null) {
-            coupon = couponService.useIssuedCoupon(command.getCouponId());
-        }
+        IssuedCoupon coupon = command.getCouponId() != null ? couponService.useIssuedCoupon(command.getCouponId()) : null;
 
         // 5. 금액 계산
         OrderAmountInfo amountInfo = orderAmountCalculator.calculate(command.getOrderItems(), coupon);
 
         // 6. 최종 주문 생성
-        return orderService.createOrder(
+        return orderCreateService.createOrder(
                 command,
                 amountInfo.getOriginalAmount(),
                 amountInfo.getDiscountAmount(),
