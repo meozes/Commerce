@@ -26,7 +26,4 @@ public class Payment extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private PaymentStatusType paymentStatus;
 
-    public void complete(PaymentStatusType type) {
-        this.paymentStatus = type;
-    }
 }

@@ -35,7 +35,7 @@ public class QIssuedCoupon extends EntityPathBase<IssuedCoupon> {
 
     public final DateTimePath<java.time.LocalDateTime> issuedAt = createDateTime("issuedAt", java.time.LocalDateTime.class);
 
-    public final kr.hhplus.be.server.domain.order.entity.QOrder order;
+    public final NumberPath<Long> orderId = createNumber("orderId", Long.class);
 
     //inherited
     public final DateTimePath<java.time.LocalDateTime> updatedAt = _super.updatedAt;
@@ -63,7 +63,6 @@ public class QIssuedCoupon extends EntityPathBase<IssuedCoupon> {
     public QIssuedCoupon(Class<? extends IssuedCoupon> type, PathMetadata metadata, PathInits inits) {
         super(type, metadata, inits);
         this.coupon = inits.isInitialized("coupon") ? new QCoupon(forProperty("coupon")) : null;
-        this.order = inits.isInitialized("order") ? new kr.hhplus.be.server.domain.order.entity.QOrder(forProperty("order")) : null;
     }
 
 }

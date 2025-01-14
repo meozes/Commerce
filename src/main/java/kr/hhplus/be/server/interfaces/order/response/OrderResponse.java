@@ -20,7 +20,7 @@ public class OrderResponse {
     private List<OrderItemResponse> orderItems;
 
     public static OrderResponse of(Order order, List<OrderItem> orderItems) {
-        List<OrderItemResponse> itemResponses = orderItems.stream()
+        List<OrderItemResponse> itemResponse = orderItems.stream()
                 .map(item -> OrderItemResponse.builder()
                         .productId(item.getProductId())
                         .productName(item.getProductName())
@@ -36,7 +36,7 @@ public class OrderResponse {
                 .discountAmount(order.getDiscountAmount())
                 .finalAmount(order.getFinalAmount())
                 .orderStatus(order.getOrderStatus().name())
-                .orderItems(itemResponses)
+                .orderItems(itemResponse)
                 .build();
     }
 }

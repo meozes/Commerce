@@ -10,12 +10,9 @@ import java.util.List;
 public interface PaymentRepository {
     Payment save(Payment payment);
 
-    Payment findByOrderId(Long id);
+    Payment findByOrderId(Long orderId);
 
     List<Payment> findAll();
-
-    @Query("SELECT p FROM Payment p JOIN FETCH p.order WHERE p.order.id = :orderId")
-    Payment findByOrderIdWithOrder(@Param("orderId") Long orderId);
 
     List<Payment> findByOrderIdIn(Collection<Long> orderIds);
 }

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.balance;
+package kr.hhplus.be.server.interfaces.balance;
 
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
@@ -204,7 +204,7 @@ class BalanceControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("잔고 충전 API - 동시성 테스트. 동시에 여러 충전 요청이 들어와도 정확한 금액이 충전된다")
+    @DisplayName("잔고 충전 API - 동시성 테스트. 동시에 여러 충전 요청이 들어와도 정확한 금액이 충전된다") //TODO: 충전, 사용 동시성 테스트
     void chargeBalance_ConcurrentCharges_CorrectFinalBalance() throws Exception {
         // given
         Long userId = 33L;

@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.Payment;
+package kr.hhplus.be.server.interfaces.payment;
 
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
@@ -205,7 +205,7 @@ class PaymentControllerIntegrationTest {
     }
 
     private void verifyPaymentStatus(Long orderId) {
-        Payment payment = paymentRepository.findByOrderIdWithOrder(orderId);
+        Payment payment = paymentRepository.findByOrderId(orderId);
         assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatusType.COMPLETED);
     }
 
