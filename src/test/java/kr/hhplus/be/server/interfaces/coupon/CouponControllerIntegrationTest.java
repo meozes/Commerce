@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.coupon;
+package kr.hhplus.be.server.interfaces.coupon;
 
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
@@ -20,11 +20,9 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -146,7 +144,7 @@ class CouponControllerIntegrationTest {
     @DisplayName("쿠폰 발급 API - 쿠폰을 정상적으로 발급한다")
     void issueCoupon() throws Exception {
         // given
-        Long userId = 3L;
+        Long userId = 10L;
         Optional<Coupon> couponOptional = couponRepository.getCoupon(savedCouponId); // setUp에서 생성한 쿠폰의 ID
         Coupon coupon = couponOptional.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
 

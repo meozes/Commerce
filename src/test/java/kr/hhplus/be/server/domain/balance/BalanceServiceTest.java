@@ -12,7 +12,6 @@ import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.domain.balance.validation.AmountValidator;
 import kr.hhplus.be.server.domain.balance.validation.UserIdValidator;
-import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import kr.hhplus.be.server.interfaces.balance.request.ChargeRequest;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

@@ -63,7 +63,7 @@ public class CouponService {
      */
     public IssuedCoupon getIssuedCoupon(Long issueCouponId) {
         return issuedCouponRepository.getIssuedCoupon(issueCouponId).orElseThrow(
-                () -> new EntityNotFoundException("해당 쿠폰을 발급받은 내역이 존재하지 않습니다."));
+                () -> new EntityNotFoundException("해당 쿠폰이 존재하지 않습니다."));
     }
 
     /**
@@ -72,10 +72,10 @@ public class CouponService {
     @Transactional
     public CouponInfo issueCoupon(CouponCommand command) {
         couponValidator.validateUserId(command.getUserId());
-        Optional<IssuedCoupon> isAlreadyIssued = issuedCouponRepository.getIssuedCouponByCoupon(command.getCouponId());
-        if (isAlreadyIssued.isPresent()){
-            throw new IllegalArgumentException("이미 발급받은 쿠폰입니다.");
-        }
+        issuedCouponRepository.getUserIssuedCoupon(command.getCouponId(), command.getUserId())
+                .ifPresent(coupon -> {
+                    throw new IllegalArgumentException("이미 발급받은 쿠폰입니다.");
+                });
 
         // 1. 쿠폰 수량 확인 (비관적 락)
         Coupon coupon = couponRepository.getCouponWithLock(command.getCouponId());

@@ -15,7 +15,6 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -72,31 +71,5 @@ class PaymentServiceTest {
         assertThat(result.getOrderId()).isEqualTo(order.getId());
 
         verify(paymentRepository).save(any(Payment.class));
-    }
-
-
-    @Test
-    @DisplayName("결제 생성 실패 - 결제 금액 불일치")
-    void createPayment_Fail_Amount() {
-        // given
-        Order order = Order.builder()
-                .id(1L)
-                .userId(1L)
-                .originalAmount(10000)
-                .finalAmount(10000)
-                .discountAmount(0)
-                .orderStatus(OrderStatusType.PENDING)
-                .build();
-
-        PaymentCommand command = PaymentCommand.builder()
-                .userId(1L)
-                .orderId(1L)
-                .amount(20000)
-                .build();
-
-        // when & then
-        assertThatThrownBy(() ->
-                paymentService.completePayment(command, order))
-                .isInstanceOf(IllegalArgumentException.class);
     }
 }

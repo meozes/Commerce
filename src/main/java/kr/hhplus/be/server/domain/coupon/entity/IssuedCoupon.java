@@ -26,9 +26,7 @@ public class IssuedCoupon extends BaseTimeEntity {
     @JoinColumn(name = "coupon_id")
     private Coupon coupon;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
-    private Order order;
+    private Long orderId;
 
     @Enumerated(EnumType.STRING)
     private CouponStatusType couponStatus;
@@ -51,6 +49,6 @@ public class IssuedCoupon extends BaseTimeEntity {
     }
 
     public void assignOrderToCoupon(Order order) {
-        this.order = order;
+        this.orderId = order.getId();
     }
 }

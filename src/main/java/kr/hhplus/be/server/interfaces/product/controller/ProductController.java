@@ -49,8 +49,8 @@ public class ProductController {
     ) {
         ProductSearchQuery query = ProductSearchQuery.of(page, size);
         Page<ProductInfo> productInfos = productService.getProducts(query);
-        Page<ProductResponse> responses = productInfos.map(ProductResponse::from);
-        return ApiResponse.ok(responses);
+        Page<ProductResponse> response = productInfos.map(ProductResponse::from);
+        return ApiResponse.ok(response);
     }
 
 

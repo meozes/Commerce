@@ -9,7 +9,7 @@ import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
 import kr.hhplus.be.server.domain.order.service.OrderAmountCalculator;
 import kr.hhplus.be.server.domain.order.usecase.*;
-import kr.hhplus.be.server.domain.order.validation.OrderValidation;
+import kr.hhplus.be.server.domain.order.validation.OrderValidator;
 import kr.hhplus.be.server.domain.product.usecase.ProductService;
 import kr.hhplus.be.server.domain.product.usecase.StockService;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +24,7 @@ public class OrderFacade {
     private final CouponService couponService;
     private final ProductService productService;
     private final StockService stockService;
-    private final OrderValidation orderValidation;
+    private final OrderValidator orderValidator;
     private final OrderAmountCalculator orderAmountCalculator;
 
 
@@ -32,7 +32,7 @@ public class OrderFacade {
     public OrderInfo createOrder(OrderCommand command) {
 
         // 1. 주문 유효성 검증
-        orderValidation.validateOrder(command);
+        orderValidator.validateOrder(command);
 
         // 2. 계좌 여부 확인
         balanceService.getBalance(BalanceQuery.of(command.getUserId()));

@@ -15,6 +15,6 @@ public interface PaymentRepositoryImpl extends JpaRepository<Payment, Long>, Pay
     }
 
     @Override
-    @Query("SELECT p FROM Payment p WHERE p.order.id = :orderId")
+    @Query("SELECT p FROM Payment p WHERE p.orderId = :orderId")
     Payment findByOrderId(@Param("orderId") Long orderId);
 }

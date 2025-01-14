@@ -33,8 +33,8 @@ public class CouponController {
     ) {
         CouponSearch couponSearch = CouponSearch.of(userId, page, size);
         Page<CouponInfo> infos = couponService.getIssuedCoupons(couponSearch);
-        Page<CouponResponse> responses = infos.map(CouponResponse::from);
-        return ApiResponse.ok(responses);
+        Page<CouponResponse> response = infos.map(CouponResponse::from);
+        return ApiResponse.ok(response);
     }
 
 

@@ -4,6 +4,7 @@ import kr.hhplus.be.server.domain.balance.exception.NotEnoughBalanceException;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
+import kr.hhplus.be.server.domain.order.validation.OrderValidator;
 import kr.hhplus.be.server.interfaces.external.OrderEventSender;
 import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
@@ -13,7 +14,6 @@ import kr.hhplus.be.server.domain.payment.dto.PaymentInfo;
 import kr.hhplus.be.server.domain.payment.entity.Payment;
 import kr.hhplus.be.server.domain.payment.type.PaymentStatusType;
 import kr.hhplus.be.server.domain.payment.usecase.PaymentService;
-import kr.hhplus.be.server.domain.payment.validation.PaymentOrderValidation;
 import kr.hhplus.be.server.domain.product.usecase.StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,13 +31,13 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final BalanceService balanceService;
     private final StockService stockService;
-    private final PaymentOrderValidation paymentOrderValidation;
+    private final OrderValidator orderValidator;
     private final OrderEventSender orderEventSender;
 
     @Transactional
     public PaymentInfo createPayment(PaymentCommand command) {
         // 1. 주문 조회
-        Order order = paymentOrderValidation.validateOrder(orderFindService.getOrder(command.getOrderId()));
+        Order order = orderValidator.validateOrder(orderFindService.getOrder(command.getOrderId()), command);
         List<OrderItem> items = orderFindService.getOrderItems(order.getId());
 
         try {
@@ -47,21 +47,14 @@ public class PaymentFacade {
             // 3. 실패 시 재고 복구
             stockService.restoreStock(items);
             orderControlService.cancelOrder(order);
-
-            PaymentInfo failed = PaymentInfo.builder()
-                    .userId(command.getUserId())
-                    .orderId(command.getOrderId())
-                    .amount(command.getAmount())
-                    .status(PaymentStatusType.FAILED)
-                    .build();
-            throw new InsufficientBalanceException("잔액이 부족합니다.", failed);
+            throw new InsufficientBalanceException("잔액이 부족합니다.", completeFailedPayment(command));
         }
 
         // 4. 주문 상태 업데이트
         Order updatedOrder = orderControlService.completeOrder(order);
 
         // 5. 결제 완료
-        Payment completedPayment = paymentService.completePayment(command,order);
+        Payment completedPayment = paymentService.completePayment(command, order);
 
         // 6. 외부 데이터 플랫폼으로 주문 정보 전송
         try {
@@ -70,6 +63,17 @@ public class PaymentFacade {
             log.error("데이터 플랫폼 주문 정보 전송 실패", e);
         }
         return PaymentInfo.from(completedPayment);
+    }
+
+
+    public PaymentInfo completeFailedPayment(PaymentCommand command) {
+        PaymentInfo failed = PaymentInfo.builder()
+                .userId(command.getUserId())
+                .orderId(command.getOrderId())
+                .amount(command.getAmount())
+                .status(PaymentStatusType.FAILED)
+                .build();
+        return failed;
     }
 }
 

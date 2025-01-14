@@ -12,7 +12,6 @@ import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
 import kr.hhplus.be.server.domain.order.usecase.OrderCreateService;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
-import kr.hhplus.be.server.domain.order.usecase.OrderService;
 import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
