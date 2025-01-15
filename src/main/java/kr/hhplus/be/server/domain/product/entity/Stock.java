@@ -2,7 +2,7 @@ package kr.hhplus.be.server.domain.product.entity;
 
 import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
-import kr.hhplus.be.server.domain.product.exception.InsufficientStockException;
+import kr.hhplus.be.server.interfaces.common.ErrorCode;
 import lombok.*;
 
 @Entity
@@ -27,13 +27,12 @@ public class Stock extends BaseTimeEntity {
     public void deductStock(int quantity) {
         int remainingQuantity = this.remainingStock - quantity;
         if (remainingQuantity < 0) {
-            throw new InsufficientStockException("재고가 부족합니다.");
+            throw new IllegalStateException(ErrorCode.INSUFFICIENT_STOCK.getMessage());
         }
         this.remainingStock = remainingQuantity;
     }
 
     public void restoreStock(int quantity) {
-        int restoringQuantity = this.remainingStock + quantity;
-        this.remainingStock = restoringQuantity;
+        this.remainingStock = this.remainingStock + quantity;
     }
 }

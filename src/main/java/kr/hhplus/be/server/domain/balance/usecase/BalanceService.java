@@ -41,10 +41,8 @@ public class BalanceService {
         userIdValidator.validate(command.getUserId());
         amountValidator.validateChargeAmount(command.getChargeAmount());
 
-        Balance balance = balanceRepository.getBalanceWithLock(command.getUserId());
-        if (balance == null) {
-            balance = createBalance(command.getUserId());
-        }
+        Balance balance = balanceRepository.getBalanceWithLock(command.getUserId())
+                .orElseGet(() -> createBalance(command.getUserId()));
 
         Integer beforeBalance = balance.getBalance();
         balance.charge(command.getChargeAmount());
@@ -68,10 +66,8 @@ public class BalanceService {
         userIdValidator.validate(userId);
         amountValidator.validateDeductAmount(amount);
 
-        Balance balance = balanceRepository.getBalanceWithLock(userId);
-        if (balance == null) {
-            balance = createBalance(userId);
-        }
+        Balance balance = balanceRepository.getBalanceWithLock(userId)
+                .orElseGet(() -> createBalance(userId));
 
         Integer beforeBalance = balance.getBalance();
         balance.deduct(amount);

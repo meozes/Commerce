@@ -5,8 +5,8 @@ import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import kr.hhplus.be.server.domain.order.validation.OrderValidator;
+import kr.hhplus.be.server.interfaces.common.ErrorCode;
 import kr.hhplus.be.server.interfaces.external.OrderEventSender;
-import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.payment.dto.PaymentCommand;
@@ -44,10 +44,11 @@ public class PaymentFacade {
             // 2. 잔고 조회, 차감
             balanceService.deductBalance(command.getUserId(), command.getAmount());
         } catch (NotEnoughBalanceException e) {
-            // 3. 실패 시 재고 복구
+            // 3. 실패 시 재고 복구, 결제 실패 처리
             stockService.restoreStock(items);
             orderControlService.cancelOrder(order);
-            throw new InsufficientBalanceException("잔액이 부족합니다.", completeFailedPayment(command));
+            completeFailedPayment(command);
+            throw new IllegalStateException(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
         }
 
         // 4. 주문 상태 업데이트
@@ -60,20 +61,19 @@ public class PaymentFacade {
         try {
             orderEventSender.send(updatedOrder);
         } catch (RuntimeException | InterruptedException e) {
-            log.error("데이터 플랫폼 주문 정보 전송 실패", e);
+            log.error(ErrorCode.ORDER_SYNC_FAILED.getMessage(), e);
         }
         return PaymentInfo.from(completedPayment);
     }
 
 
-    public PaymentInfo completeFailedPayment(PaymentCommand command) {
-        PaymentInfo failed = PaymentInfo.builder()
+    public void completeFailedPayment(PaymentCommand command) {
+        PaymentInfo.builder()
                 .userId(command.getUserId())
                 .orderId(command.getOrderId())
                 .amount(command.getAmount())
                 .status(PaymentStatusType.FAILED)
                 .build();
-        return failed;
     }
 }
 

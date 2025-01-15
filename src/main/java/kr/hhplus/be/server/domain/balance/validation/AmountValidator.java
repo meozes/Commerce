@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.balance.validation;
 
+import kr.hhplus.be.server.interfaces.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 
@@ -9,21 +10,21 @@ public class AmountValidator {
 
     public void validateDeductAmount(Integer amount) {
         if (amount == null) {
-            throw new IllegalArgumentException("차감 금액은 필수입니다.");
+            throw new IllegalArgumentException(ErrorCode.DEDUCTION_AMOUNT_REQUIRED.getMessage());
         }
 
         if (amount <= 0) {
-            throw new IllegalArgumentException("차감 금액은 0보다 커야 합니다.");
+            throw new IllegalArgumentException(ErrorCode.INVALID_DEDUCTION_AMOUNT.getMessage());
         }
     }
 
     public void validateChargeAmount(Integer amount) {
         if (amount == null) {
-            throw new IllegalArgumentException("충전 금액은 필수입니다.");
+            throw new IllegalArgumentException(ErrorCode.CHARGE_AMOUNT_REQUIRED.getMessage());
         }
 
         if (amount < 100) {
-            throw new IllegalArgumentException("충전 금액은 100원 보다 커야 합니다.");
+            throw new IllegalArgumentException(ErrorCode.INVALID_AMOUNT_INPUT.getMessage());
         }
     }
 }

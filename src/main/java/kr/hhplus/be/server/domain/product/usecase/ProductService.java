@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.product.usecase;
 
-import jakarta.persistence.EntityNotFoundException;
 import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.product.dto.ProductInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductSearch;
@@ -9,12 +8,14 @@ import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
+import kr.hhplus.be.server.interfaces.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.stream.Collectors;
 
 @Service
@@ -30,10 +31,10 @@ public class ProductService {
     public ProductInfo getProduct(ProductSearch productSearch) {
 
         if (productSearch.getProductId() < 0){
-            throw new IllegalArgumentException("유효하지 않은 상품 ID 입니다.");
+            throw new IllegalArgumentException(ErrorCode.INVALID_PRODUCT_ID.getMessage());
         }
         Product product = productRepository.getProduct(productSearch.getProductId()).orElseThrow(
-                () -> new EntityNotFoundException("해당 상품이 존재하지 않습니다.")
+                () -> new NoSuchElementException(ErrorCode.PRODUCT_NOT_FOUND.getMessage())
         );
         Stock stock = stockRepository.getStock(productSearch.getProductId());
 
@@ -66,13 +67,9 @@ public class ProductService {
      * 상품 존재 여부 확인
      */
     public void getOrderProduct(List<OrderItemCommand> orderItems) {
-        orderItems.stream()
-                .forEach(item -> {
+        orderItems.forEach(item -> {
                     ProductSearch productSearch = ProductSearch.of(item.getProductId());
-                    ProductInfo productInfo = getProduct(productSearch);
-                    if (productInfo == null) {
-                        throw new EntityNotFoundException("상품을 찾을 수 없습니다. productId: " + item.getProductId());
-                    }
+                    getProduct(productSearch);
                 });
     }
 }

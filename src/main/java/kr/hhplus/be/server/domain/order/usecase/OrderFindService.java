@@ -5,11 +5,13 @@ import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
+import kr.hhplus.be.server.interfaces.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDate;
 import java.util.List;
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
@@ -22,7 +24,8 @@ public class OrderFindService {
      * 주문 찾기
      */
     public OrderInfo getOrder(Long orderId) {
-        return OrderInfo.from(orderRepository.getOrder(orderId));
+        return OrderInfo.from(orderRepository.getOrder(orderId)
+                .orElseThrow(() -> new NoSuchElementException(ErrorCode.ORDER_NOT_FOUND.getMessage() + orderId)));
     }
 
     /**

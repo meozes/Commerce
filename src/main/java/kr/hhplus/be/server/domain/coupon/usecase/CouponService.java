@@ -1,8 +1,6 @@
 package kr.hhplus.be.server.domain.coupon.usecase;
 
-import jakarta.persistence.EntityNotFoundException;
 import jakarta.transaction.Transactional;
-import kr.hhplus.be.server.domain.coupon.dto.IssuedCouponInfo;
 import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
@@ -12,12 +10,13 @@ import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
+import kr.hhplus.be.server.interfaces.common.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.Optional;
+import java.util.NoSuchElementException;
 
 
 @Service
@@ -36,7 +35,7 @@ public class CouponService {
 
         return issuedCoupons.map(issuedCoupon -> {
             Coupon coupon = couponRepository.getCoupon(issuedCoupon.getCoupon().getId()).orElseThrow(
-                    () -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. id=" + issuedCoupon.getCoupon().getId())
+                    () -> new NoSuchElementException(ErrorCode.INVALID_COUPON.getMessage() + " id=" + issuedCoupon.getCoupon().getId())
             );
             return CouponInfo.builder()
                     .coupon(coupon)
@@ -63,7 +62,7 @@ public class CouponService {
      */
     public IssuedCoupon getIssuedCoupon(Long issueCouponId) {
         return issuedCouponRepository.getIssuedCoupon(issueCouponId).orElseThrow(
-                () -> new EntityNotFoundException("해당 쿠폰이 존재하지 않습니다."));
+                () -> new NoSuchElementException(ErrorCode.COUPON_NOT_FOUND.getMessage()));
     }
 
     /**
@@ -74,14 +73,12 @@ public class CouponService {
         couponValidator.validateUserId(command.getUserId());
         issuedCouponRepository.getUserIssuedCoupon(command.getCouponId(), command.getUserId())
                 .ifPresent(coupon -> {
-                    throw new IllegalArgumentException("이미 발급받은 쿠폰입니다.");
+                    throw new IllegalStateException(ErrorCode.COUPON_ALREADY_ISSUED.getMessage());
                 });
 
         // 1. 쿠폰 수량 확인 (비관적 락)
-        Coupon coupon = couponRepository.getCouponWithLock(command.getCouponId());
-        if (coupon == null) {
-            throw new EntityNotFoundException("존재하지 않는 쿠폰입니다. id=" + command.getCouponId());
-        }
+        Coupon coupon = couponRepository.getCouponWithLock(command.getCouponId())
+                .orElseThrow(() -> new NoSuchElementException(ErrorCode.INVALID_COUPON.getMessage()+ " id=" + command.getCouponId()));
         couponValidator.validateCouponQuantity(coupon);
 
         // 2. 쿠폰 잔량 감소

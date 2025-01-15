@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import kr.hhplus.be.server.domain.order.entity.Order;
+import kr.hhplus.be.server.interfaces.common.ErrorCode;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -37,11 +38,11 @@ public class IssuedCoupon extends BaseTimeEntity {
 
     public void use() {
         if (CouponStatusType.USED.equals(this.couponStatus)) {
-            throw new IllegalStateException("이미 사용된 쿠폰입니다. 사용 일자 = " + this.usedAt);
+            throw new IllegalStateException(ErrorCode.COUPON_ALREADY_USED.getMessage() + " 사용 일자 = " + this.usedAt);
         }
 
         if (this.coupon.getDueDate().isBefore(LocalDate.now())) {
-            throw new IllegalStateException("만료된 쿠폰입니다. 만료 일자 = " + this.coupon.getDueDate());
+            throw new IllegalStateException(ErrorCode.COUPON_EXPIRED.getMessage() + " 만료 일자 = " + this.coupon.getDueDate());
         }
 
         this.couponStatus = CouponStatusType.USED;
