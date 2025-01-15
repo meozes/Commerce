@@ -57,6 +57,9 @@ dependencies {
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+
+	// Filter
+	implementation("com.google.guava:guava:32.1.3-jre")
 }
 
 tasks.withType<Test> {

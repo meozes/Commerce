@@ -27,6 +27,9 @@ spring:
 #    init:
 #      mode: always
 
+logging:
+  level:
+    kr.hhplus.be.server.common: DEBUG
 ---
 spring.config.activate.on-profile: local, test
 
