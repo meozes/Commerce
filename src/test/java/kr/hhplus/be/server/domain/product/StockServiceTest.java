@@ -1,11 +1,8 @@
 package kr.hhplus.be.server.domain.product;
 
-import jakarta.persistence.EntityNotFoundException;
 import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.entity.Stock;
-import kr.hhplus.be.server.domain.product.exception.InsufficientStockException;
-import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import kr.hhplus.be.server.domain.product.usecase.StockService;
 import org.junit.jupiter.api.DisplayName;
@@ -17,11 +14,11 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.NoSuchElementException;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -51,7 +48,7 @@ class StockServiceTest {
                 .build();
         itemList.add(item);
 
-        when(stockRepository.getStockWithLock(productId)).thenReturn(stock);
+        when(stockRepository.getStockWithLock(productId)).thenReturn(Optional.of(stock));
 
         // when
         stockService.deductStock(itemList);
@@ -78,10 +75,10 @@ class StockServiceTest {
                 .build();
         itemList.add(item);
 
-        when(stockRepository.getStockWithLock(productId)).thenReturn(null);
+        when(stockRepository.getStockWithLock(productId)).thenReturn(Optional.empty());
 
         // when & then
-        assertThrows(EntityNotFoundException.class,
+        assertThrows(NoSuchElementException.class,
                 () -> stockService.deductStock(itemList));
         verify(stockRepository).getStockWithLock(productId);
     }
@@ -104,10 +101,10 @@ class StockServiceTest {
                 .build();
         itemList.add(item);
 
-        when(stockRepository.getStockWithLock(productId)).thenReturn(stock);
+        when(stockRepository.getStockWithLock(productId)).thenReturn(Optional.of(stock));
 
         // when & then
-        InsufficientStockException exception = assertThrows(InsufficientStockException.class,
+        IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> stockService.deductStock(itemList));
 
         assertTrue(exception.getMessage().contains("상품의 재고가 부족합니다"));

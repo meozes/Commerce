@@ -259,7 +259,7 @@ class PaymentControllerIntegrationTest {
 
 
         // then
-        result.andExpect(status().isConflict())
+        result.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("잔액이 부족합니다.")))
                 .andDo(print());
 

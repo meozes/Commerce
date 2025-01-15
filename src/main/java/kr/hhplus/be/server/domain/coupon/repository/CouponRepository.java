@@ -20,5 +20,5 @@ public interface CouponRepository {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")})
     @Query("select c from Coupon c where c.id = :couponId")
-    Coupon getCouponWithLock(@Param("couponId") Long couponId);
+    Optional<Coupon> getCouponWithLock(@Param("couponId") Long couponId);
 }

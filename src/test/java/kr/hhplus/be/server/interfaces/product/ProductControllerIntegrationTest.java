@@ -133,7 +133,7 @@ class ProductControllerIntegrationTest {
         // then
         result.andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("해당 상품이 존재하지 않습니다."))
+                .andExpect(jsonPath("$.message").value("상품이 존재하지 않습니다."))
                 .andExpect(jsonPath("$.data").isEmpty())
                 .andExpect(jsonPath("$.code").value(404));
     }

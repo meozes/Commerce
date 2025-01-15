@@ -19,9 +19,6 @@ public interface IssuedCouponRepository {
     @Query("SELECT ic FROM IssuedCoupon ic JOIN FETCH ic.coupon c WHERE ic.id = :issueCouponId")
     Optional<IssuedCoupon> getIssuedCoupon(@Param("issueCouponId") Long issueCouponId);
 
-    @Query("SELECT ic FROM IssuedCoupon ic JOIN FETCH ic.coupon c WHERE ic.couponId = :couponId")
-    Optional<IssuedCoupon> getIssuedCouponByCoupon(Long couponId);
-
     @Query("SELECT ic FROM IssuedCoupon ic JOIN FETCH ic.coupon c WHERE ic.coupon.id = :couponId AND ic.userId = :userId")
     Optional<IssuedCoupon> getUserIssuedCoupon(@Param("couponId") Long couponId, @Param("userId") Long userId);
 }

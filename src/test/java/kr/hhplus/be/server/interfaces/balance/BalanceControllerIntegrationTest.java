@@ -3,6 +3,7 @@ package kr.hhplus.be.server.interfaces.balance;
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import kr.hhplus.be.server.interfaces.balance.request.ChargeRequest;
+import kr.hhplus.be.server.interfaces.common.ErrorCode;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -163,8 +164,7 @@ class BalanceControllerIntegrationTest {
         result.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.code").value(400))
                 .andExpect(jsonPath("$.status").value("BAD_REQUEST"))
-                .andExpect(jsonPath("$.message").value("충전 금액은 100원 보다 커야 합니다."))
-                .andExpect(jsonPath("$.data").doesNotExist())
+                .andExpect(jsonPath("$.message").value(ErrorCode.INVALID_AMOUNT_INPUT.getMessage()))
                 .andDo(print());
     }
 

@@ -73,7 +73,7 @@ public class CouponServiceTest {
         // when
         doNothing().when(couponValidator).validateUserId(userId);
         doNothing().when(couponValidator).validateCouponQuantity(coupon);
-        when(couponRepository.getCouponWithLock(couponId)).thenReturn(coupon);
+        when(couponRepository.getCouponWithLock(couponId)).thenReturn(Optional.of(coupon));
         when(issuedCouponRepository.saveIssuedCoupon(any(IssuedCoupon.class))).thenReturn(issuedCoupon);
 
         CouponInfo result = couponService.issueCoupon(command);
@@ -129,12 +129,12 @@ public class CouponServiceTest {
                 .build();
 
         doNothing().when(couponValidator).validateUserId(userId);
-        doThrow(new IllegalArgumentException("쿠폰이 모두 소진되었습니다." + couponId))
+        doThrow(new IllegalStateException("쿠폰이 모두 소진되었습니다." + couponId))
                 .when(couponValidator).validateCouponQuantity(coupon);
-        when(couponRepository.getCouponWithLock(couponId)).thenReturn(coupon);
+        when(couponRepository.getCouponWithLock(couponId)).thenReturn(Optional.of(coupon));
 
         // when & then
-        assertThrows(IllegalArgumentException.class, () -> {
+        assertThrows(IllegalStateException.class, () -> {
             couponService.issueCoupon(command);
         });
 
@@ -155,7 +155,6 @@ public class CouponServiceTest {
                 .couponName("10% 할인 쿠폰")
                 .discountAmount(1000)
                 .build();
-        couponRepository.save(coupon);
 
         IssuedCoupon issuedCoupon = IssuedCoupon.builder()
                 .id(1L)
@@ -164,15 +163,14 @@ public class CouponServiceTest {
                 .couponStatus(CouponStatusType.NEW)
                 .issuedAt(LocalDateTime.now())
                 .build();
-        issuedCouponRepository.save(issuedCoupon);
 
-        CouponCommand command = CouponCommand.of(userId, couponId);
+        CouponCommand command = CouponCommand.of(userId, coupon.getId());
         doNothing().when(couponValidator).validateUserId(userId);
-        when(issuedCouponRepository.getIssuedCouponByCoupon(eq(command.getCouponId())))
-                .thenReturn(Optional.ofNullable(issuedCoupon));
+        when(issuedCouponRepository.getUserIssuedCoupon(eq(command.getCouponId()), eq(command.getUserId())))
+                .thenReturn(Optional.of(issuedCoupon));
 
         // when
-        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class, () ->
+        IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
                 couponService.issueCoupon(command)
         );
 

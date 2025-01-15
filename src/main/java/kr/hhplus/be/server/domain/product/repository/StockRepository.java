@@ -18,7 +18,7 @@ public interface StockRepository {
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")})
     @Query("select s from Stock s where s.product.id = :productId")
-    Stock getStockWithLock(@Param("productId") Long productId);
+    Optional<Stock> getStockWithLock(@Param("productId") Long productId);
 
     List<Stock> getStocks(Collection<Long> productIds);
 

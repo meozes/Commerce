@@ -303,7 +303,7 @@ class OrderControllerIntegrationTest {
         );
 
         // then
-        result.andExpect(status().isConflict())
+        result.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("재고가 부족합니다")))
                 .andDo(print());
 
@@ -341,7 +341,7 @@ class OrderControllerIntegrationTest {
 
         // then
         result.andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("해당 쿠폰이 존재하지 않습니다."))
+                .andExpect(jsonPath("$.message").value("해당 쿠폰을 발급받은 내역이 없습니다."))
                 .andDo(print());
 
         assertThat(orderRepository.findAll()).isEmpty();
@@ -375,7 +375,7 @@ class OrderControllerIntegrationTest {
         );
 
         // then
-        result.andExpect(status().isConflict())
+        result.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("만료된 쿠폰입니다")))
                 .andDo(print());
 
@@ -411,7 +411,7 @@ class OrderControllerIntegrationTest {
         );
 
         // then
-        result.andExpect(status().isConflict())
+        result.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("이미 사용된 쿠폰입니다")))
                 .andDo(print());
 

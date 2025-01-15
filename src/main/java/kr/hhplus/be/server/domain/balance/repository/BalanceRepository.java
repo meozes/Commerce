@@ -19,7 +19,7 @@ public interface BalanceRepository {
             @QueryHint(name = "javax.persistence.query.timeout", value = "3000")
     })
     @Query("select b from Balance b where b.userId = :userId")
-    Balance getBalanceWithLock(@Param("userId") Long userId);
+    Optional<Balance> getBalanceWithLock(@Param("userId") Long userId);
 
     Balance save(Balance balance);
 

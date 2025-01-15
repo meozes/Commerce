@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.infra.order;
 
-import jakarta.persistence.EntityNotFoundException;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -12,9 +11,8 @@ import java.util.Optional;
 public interface OrderRepositoryImpl extends JpaRepository<Order, Long>, OrderRepository {
 
     @Override
-    default Order getOrder(Long orderId) {
-        return findById(orderId)
-                .orElseThrow(() -> new EntityNotFoundException("해당 주문이 존재하지 않습니다. " + orderId));
+    default Optional<Order> getOrder(Long orderId) {
+        return findById(orderId);
     }
 
     @Override
