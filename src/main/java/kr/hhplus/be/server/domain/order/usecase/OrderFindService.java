@@ -5,7 +5,7 @@ import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
-import kr.hhplus.be.server.interfaces.common.ErrorCode;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 

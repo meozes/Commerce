@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.domain.balance.validation;
 
-import kr.hhplus.be.server.interfaces.common.ErrorCode;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

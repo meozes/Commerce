@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.interfaces.common;
+package kr.hhplus.be.server.interfaces.common.type;
 
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;

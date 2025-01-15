@@ -8,7 +8,7 @@ import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
-import kr.hhplus.be.server.interfaces.common.ErrorCode;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;

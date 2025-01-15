@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.coupon.validation;
 
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
-import kr.hhplus.be.server.interfaces.common.ErrorCode;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Component;
 

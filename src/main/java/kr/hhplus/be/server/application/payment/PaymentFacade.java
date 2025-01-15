@@ -5,7 +5,7 @@ import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import kr.hhplus.be.server.domain.order.validation.OrderValidator;
-import kr.hhplus.be.server.interfaces.common.ErrorCode;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import kr.hhplus.be.server.interfaces.external.OrderEventSender;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.domain.order.entity.Order;

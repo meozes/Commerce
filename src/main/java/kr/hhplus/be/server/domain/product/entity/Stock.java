@@ -2,7 +2,7 @@ package kr.hhplus.be.server.domain.product.entity;
 
 import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
-import kr.hhplus.be.server.interfaces.common.ErrorCode;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.*;
 
 @Entity

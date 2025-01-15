@@ -7,7 +7,7 @@ import jakarta.validation.Valid;
 import kr.hhplus.be.server.application.order.OrderFacade;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
-import kr.hhplus.be.server.interfaces.common.ApiResponse;
+import kr.hhplus.be.server.interfaces.common.response.ApiResponse;
 import kr.hhplus.be.server.interfaces.order.request.OrderRequest;
 import kr.hhplus.be.server.interfaces.order.response.OrderResponse;
 import lombok.RequiredArgsConstructor;

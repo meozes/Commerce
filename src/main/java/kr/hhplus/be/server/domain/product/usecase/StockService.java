@@ -4,7 +4,7 @@ import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
-import kr.hhplus.be.server.interfaces.common.ErrorCode;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;

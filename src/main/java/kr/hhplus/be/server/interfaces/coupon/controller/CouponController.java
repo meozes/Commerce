@@ -6,7 +6,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
 import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
-import kr.hhplus.be.server.interfaces.common.ApiResponse;
+import kr.hhplus.be.server.interfaces.common.response.ApiResponse;
 import kr.hhplus.be.server.domain.coupon.dto.CouponSearch;
 import kr.hhplus.be.server.interfaces.coupon.response.CouponResponse;
 import lombok.RequiredArgsConstructor;

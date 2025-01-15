@@ -9,7 +9,7 @@ import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductSearch;
 import kr.hhplus.be.server.domain.product.dto.ProductSearchQuery;
 import kr.hhplus.be.server.domain.product.usecase.ProductService;
-import kr.hhplus.be.server.interfaces.common.ApiResponse;
+import kr.hhplus.be.server.interfaces.common.response.ApiResponse;
 import kr.hhplus.be.server.interfaces.product.response.ProductResponse;
 
 import kr.hhplus.be.server.interfaces.product.response.TopProductResponse;

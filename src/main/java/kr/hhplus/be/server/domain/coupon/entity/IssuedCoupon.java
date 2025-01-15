@@ -4,7 +4,7 @@ import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import kr.hhplus.be.server.domain.order.entity.Order;
-import kr.hhplus.be.server.interfaces.common.ErrorCode;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.*;
 
 import java.time.LocalDate;
