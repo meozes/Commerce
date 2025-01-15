@@ -17,6 +17,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.Optional;
 
 
 @Service
@@ -26,12 +27,17 @@ public class CouponService {
     private final IssuedCouponRepository issuedCouponRepository;
     private final CouponValidator couponValidator;
 
-    public Page<CouponInfo> getCoupons(CouponSearch couponSearch) {
+    /**
+     * 유저가 발급받은 쿠폰 내역 조회
+     */
+    public Page<CouponInfo> getIssuedCoupons(CouponSearch couponSearch) {
         couponValidator.validateUserId(couponSearch.getUserId());
         Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.getIssuedCoupons(couponSearch.toPageRequest(), couponSearch.getUserId());
 
         return issuedCoupons.map(issuedCoupon -> {
-            Coupon coupon = couponRepository.getCoupon(issuedCoupon.getCoupon().getId());
+            Coupon coupon = couponRepository.getCoupon(issuedCoupon.getCoupon().getId()).orElseThrow(
+                    () -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. id=" + issuedCoupon.getCoupon().getId())
+            );
             return CouponInfo.builder()
                     .coupon(coupon)
                     .issuedCoupon(issuedCoupon)
@@ -39,27 +45,50 @@ public class CouponService {
         });
     }
 
+    /**
+     * 쿠폰 사용하기
+     */
+    @Transactional
+    public IssuedCoupon useIssuedCoupon(Long couponId) {
+        if (couponId == null){
+            return null;
+        }
+        IssuedCoupon coupon = getIssuedCoupon(couponId);
+        coupon.use();
+        return coupon;
+    }
+
+    /**
+     * 특정 발급 받은 쿠폰 조회하기
+     */
     public IssuedCoupon getIssuedCoupon(Long issueCouponId) {
         return issuedCouponRepository.getIssuedCoupon(issueCouponId).orElseThrow(
                 () -> new EntityNotFoundException("해당 쿠폰이 존재하지 않습니다."));
     }
 
+    /**
+     * 쿠폰 발급하기
+     */
     @Transactional
     public CouponInfo issueCoupon(CouponCommand command) {
         couponValidator.validateUserId(command.getUserId());
+        issuedCouponRepository.getUserIssuedCoupon(command.getCouponId(), command.getUserId())
+                .ifPresent(coupon -> {
+                    throw new IllegalArgumentException("이미 발급받은 쿠폰입니다.");
+                });
 
-        //coupon 수량 확인
+        // 1. 쿠폰 수량 확인 (비관적 락)
         Coupon coupon = couponRepository.getCouponWithLock(command.getCouponId());
         if (coupon == null) {
             throw new EntityNotFoundException("존재하지 않는 쿠폰입니다. id=" + command.getCouponId());
         }
         couponValidator.validateCouponQuantity(coupon);
 
-        //coupon 발급
-        coupon.issue();
+        // 2. 쿠폰 잔량 감소
+        coupon.decreaseRemainingQuantity();
         couponRepository.saveCoupon(coupon);
 
-        //발급 내역 저장
+        // 3. 발급 내역 저장
         IssuedCoupon issuedCoupon = IssuedCoupon.builder()
                .coupon(coupon)
                .userId(command.getUserId())
@@ -75,8 +104,4 @@ public class CouponService {
 
     }
 
-    @Transactional
-    public void saveIssuedCoupon(IssuedCoupon coupon) {
-        issuedCouponRepository.saveIssuedCoupon(coupon);
-    }
 }

@@ -1,8 +1,7 @@
 package kr.hhplus.be.server.application.product;
 
-import kr.hhplus.be.server.domain.order.usecase.OrderService;
+import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
-import kr.hhplus.be.server.domain.product.entity.Product;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,8 +14,11 @@ import java.util.stream.IntStream;
 @RequiredArgsConstructor
 public class ProductFacade {
 
-    private final OrderService orderService;
+    private final OrderFindService orderFindService;
 
+    /**
+     * 3일간 인기상품 조회하기
+     */
     public List<ProductRankInfo> getTopProducts() {
         LocalDate today = LocalDate.now();
         LocalDate endDate = today;
@@ -24,7 +26,7 @@ public class ProductFacade {
 //        LocalDate endDate = today.minusDays(1);
 //        LocalDate startDate = endDate.minusDays(4);
 
-        List<ProductRankInfo> products = orderService.getTopProductsByOrderDate(startDate, endDate);
+        List<ProductRankInfo> products = orderFindService.getTopProductsByOrderDate(startDate, endDate);
 
         return IntStream.range(0, products.size())
                 .mapToObj(i -> products.get(i).withRank(i + 1))

@@ -9,7 +9,9 @@ import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.type.OrderStatusType;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
-import kr.hhplus.be.server.domain.order.usecase.OrderService;
+import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
+import kr.hhplus.be.server.domain.order.usecase.OrderCreateService;
+import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.DisplayName;
@@ -36,7 +38,13 @@ class OrderServiceTest {
     private OrderItemRepository orderItemRepository;
 
     @InjectMocks
-    private OrderService orderService;
+    private OrderCreateService orderCreateService;
+
+    @InjectMocks
+    private OrderFindService orderFindService;
+
+    @InjectMocks
+    private OrderControlService orderControlService;
 
     /**
      * 주문 생성 테스트
@@ -82,7 +90,7 @@ class OrderServiceTest {
         when(orderItemRepository.saveAll(anyList())).thenReturn(List.of(orderItem));
 
         // when
-        OrderInfo result = orderService.createOrder(command, 20000, 0, 20000, null);
+        OrderInfo result = orderCreateService.createOrder(command, 20000, 0, 20000, null);
 
         // then
         verify(orderRepository).save(any(Order.class));
@@ -124,12 +132,12 @@ class OrderServiceTest {
         when(orderItemRepository.saveAll(anyList())).thenReturn(List.of(mock(OrderItem.class)));
 
         // when
-        OrderInfo result = orderService.createOrder(command, 20000, 2000, 18000, coupon);
+        OrderInfo result = orderCreateService.createOrder(command, 20000, 2000, 18000, coupon);
 
         // then
         verify(orderRepository).save(any(Order.class));
         verify(orderItemRepository).saveAll(anyList());
-        verify(coupon).assignToOrder(any(Order.class));
+        verify(coupon).assignOrderToCoupon(any(Order.class));
 
         assertThat(result.getOrder().getDiscountAmount()).isEqualTo(2000);
         assertThat(result.getOrder().getFinalAmount()).isEqualTo(18000);
@@ -156,7 +164,7 @@ class OrderServiceTest {
         when(orderRepository.save(any(Order.class))).thenReturn(order);
 
         // when
-        Order completedOrder = orderService.completeOrder(order);
+        Order completedOrder = orderControlService.completeOrder(order);
 
         // then
         assertThat(completedOrder.getOrderStatus()).isEqualTo(OrderStatusType.COMPLETED);
@@ -183,7 +191,7 @@ class OrderServiceTest {
                 .thenReturn(mockRankList);
 
         // when
-        List<ProductRankInfo> result = orderService.getTopProductsByOrderDate(startDate, endDate);
+        List<ProductRankInfo> result = orderFindService.getTopProductsByOrderDate(startDate, endDate);
 
         // then
         assertThat(result).hasSize(2);

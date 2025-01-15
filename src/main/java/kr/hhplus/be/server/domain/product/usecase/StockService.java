@@ -1,49 +1,58 @@
 package kr.hhplus.be.server.domain.product.usecase;
 
 import jakarta.persistence.EntityNotFoundException;
-import kr.hhplus.be.server.domain.product.entity.Product;
+import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
+import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.exception.InsufficientStockException;
-import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 @Slf4j
 @Service
 @RequiredArgsConstructor
 public class StockService {
-    private final ProductRepository productRepository;
     private final StockRepository stockRepository;
 
+    /**
+     * 재고 차감하기
+     */
     @Transactional
-    public void validateAndDeductStock(Long productId, int quantity) {
-
-        log.info("재고 차감 시작: productId={}, quantity={}, thread={}",
-                productId, quantity, Thread.currentThread().getName());
-        Product product = productRepository.getProduct(productId)
-                .orElseThrow(() -> new EntityNotFoundException("상품을 찾을 수 없습니다. productId: " + productId));
-        Stock stock = stockRepository.getStockWithLock(productId);
-        log.info("락 획득 완료: productId={}, thread={}",
-                productId, Thread.currentThread().getName());
-        if (stock == null) {
-            throw new EntityNotFoundException("재고 정보를 찾을 수 없습니다. productId: " + productId);
-        }
-
-        if (stock.getRemainingStock() < quantity) {
-            throw new InsufficientStockException(
-                    String.format("상품의 재고가 부족합니다. 상품ID: %d, 요청수량: %d, 재고수량: %d",
-                            productId,
-                            quantity,
-                            stock.getRemainingStock()
-                    )
-            );
-        }
-
-        stock.deductStock(quantity);
-        stockRepository.save(stock);
+    public void deductStock(List<OrderItemCommand> orderItems) {
+        orderItems.stream()
+                .forEach(item -> {
+                    Stock stock = stockRepository.getStockWithLock(item.getProductId());
+                    if (stock == null) {
+                        throw new EntityNotFoundException("상품의 재고 정보가 없습니다.");
+                    }
+                    if (stock.getRemainingStock() < item.getQuantity()){
+                        throw new InsufficientStockException(
+                                String.format("상품의 재고가 부족합니다. 상품ID: %d, 요청수량: %d, 재고수량: %d",
+                                        item.getProductId(),
+                                        item.getQuantity(),
+                                        stock.getRemainingStock())
+                        );
+                    }
+                    stock.deductStock(item.getQuantity());
+                    stockRepository.save(stock);
+                });
     }
 
+    /**
+     * 재고 복구하기
+     */
+    @Transactional
+    public void restoreStock(List<OrderItem> orderItems) {
+        orderItems.stream()
+                .forEach(item -> {
+                    Stock stock = stockRepository.getStockWithLock(item.getProductId());
+                    stock.restoreStock(item.getQuantity());
+                    stockRepository.save(stock);
+                });
+    }
 }

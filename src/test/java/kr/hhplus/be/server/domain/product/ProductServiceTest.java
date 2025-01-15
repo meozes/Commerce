@@ -45,7 +45,6 @@ class ProductServiceTest {
     @DisplayName("상품 조회 성공")
     void getProducts_Success() {
         // given
-
         ProductSearchQuery query = ProductSearchQuery.of(0, 10);
         PageRequest pageRequest = query.toPageRequest();  // PageRequest 생성
 

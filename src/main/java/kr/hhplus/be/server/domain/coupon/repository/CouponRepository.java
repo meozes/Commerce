@@ -8,8 +8,10 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Optional;
+
 public interface CouponRepository {
-    Coupon getCoupon(Long id);
+    Optional<Coupon> getCoupon(Long id);
 
     void saveCoupon(Coupon coupon);
 

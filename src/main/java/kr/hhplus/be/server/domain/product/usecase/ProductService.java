@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.product.usecase;
 
 import jakarta.persistence.EntityNotFoundException;
+import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.product.dto.ProductInfo;
 import kr.hhplus.be.server.domain.product.dto.ProductSearch;
 import kr.hhplus.be.server.domain.product.dto.ProductSearchQuery;
@@ -23,6 +24,9 @@ public class ProductService {
     private final ProductRepository productRepository;
     private final StockRepository stockRepository;
 
+    /**
+     * 상품 단건 조회하기
+     */
     public ProductInfo getProduct(ProductSearch productSearch) {
 
         if (productSearch.getProductId() < 0){
@@ -36,6 +40,9 @@ public class ProductService {
         return ProductInfo.of(product, stock);
     }
 
+    /**
+     * 상품 전체 조회하기
+     */
     public Page<ProductInfo> getProducts(ProductSearchQuery query) {
         Page<Product> products = productRepository.getProducts(query.toPageRequest());
 
@@ -53,5 +60,19 @@ public class ProductService {
 
         return products.map(product ->
                 ProductInfo.of(product, stockMap.get(product.getId())));
+    }
+
+    /**
+     * 상품 존재 여부 확인
+     */
+    public void getOrderProduct(List<OrderItemCommand> orderItems) {
+        orderItems.stream()
+                .forEach(item -> {
+                    ProductSearch productSearch = ProductSearch.of(item.getProductId());
+                    ProductInfo productInfo = getProduct(productSearch);
+                    if (productInfo == null) {
+                        throw new EntityNotFoundException("상품을 찾을 수 없습니다. productId: " + item.getProductId());
+                    }
+                });
     }
 }

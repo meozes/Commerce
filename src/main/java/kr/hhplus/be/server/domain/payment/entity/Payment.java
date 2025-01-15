@@ -17,9 +17,7 @@ public class Payment extends BaseTimeEntity {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @OneToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "order_id")
-    private Order order;
+    private Long orderId;
 
     private Long userId;
 
@@ -28,7 +26,4 @@ public class Payment extends BaseTimeEntity {
     @Enumerated(EnumType.STRING)
     private PaymentStatusType paymentStatus;
 
-    public void complete(PaymentStatusType type) {
-        this.paymentStatus = type;
-    }
 }

@@ -10,10 +10,7 @@ import java.util.Optional;
 @Repository
 public interface CouponRepositoryImpl extends JpaRepository<Coupon, Long>, CouponRepository {
     @Override
-    default Coupon getCoupon(Long couponId) {
-        return findById(couponId)
-                .orElseThrow(() -> new IllegalArgumentException("존재하지 않는 쿠폰입니다. id=" + couponId));
-    }
+    default Optional<Coupon> getCoupon(Long couponId) {return findById(couponId);}
 
     @Override
     default void saveCoupon(Coupon coupon) {

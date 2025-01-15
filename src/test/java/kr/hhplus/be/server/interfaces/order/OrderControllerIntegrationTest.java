@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.order;
+package kr.hhplus.be.server.interfaces.order;
 
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
@@ -417,5 +417,7 @@ class OrderControllerIntegrationTest {
 
         assertThat(orderRepository.findAll()).isEmpty();
     }
+
+    //TODO : 주문 동시성 테스트(재고관련)
 
 }

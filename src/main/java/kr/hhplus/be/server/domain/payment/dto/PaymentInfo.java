@@ -16,7 +16,7 @@ public class PaymentInfo {
     public static PaymentInfo from(Payment payment) {
         return PaymentInfo.builder()
                 .paymentId(payment.getId())
-                .orderId(payment.getOrder().getId())
+                .orderId(payment.getOrderId())
                 .userId(payment.getUserId())
                 .amount(payment.getAmount())
                 .status(payment.getPaymentStatus())

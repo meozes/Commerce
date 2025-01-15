@@ -8,9 +8,6 @@ import kr.hhplus.be.server.domain.payment.type.PaymentStatusType;
 import kr.hhplus.be.server.domain.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-
-import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -18,25 +15,17 @@ public class PaymentService {
 
     private final PaymentRepository paymentRepository;
 
+    /**
+     * 결제 완료
+     */
     @Transactional
-    public Payment createPayment(PaymentCommand command, Order order) {
-        if (!Objects.equals(order.getFinalAmount(), command.getAmount())){
-            throw new IllegalArgumentException("결제 금액 요청 금액이 최종 주문 금액과 다릅니다.");
-        }
-
+    public Payment completePayment(PaymentCommand command, Order order) {
         Payment payment = Payment.builder()
-                .order(order)
+                .orderId(order.getId())
                 .userId(command.getUserId())
                 .amount(command.getAmount())
-                .paymentStatus(PaymentStatusType.PENDING)
+                .paymentStatus(PaymentStatusType.COMPLETED)
                 .build();
-
-        return paymentRepository.save(payment);
-    }
-
-    @Transactional
-    public Payment completePayment(Payment payment, PaymentStatusType type) {
-        payment.complete(type);
         return paymentRepository.save(payment);
     }
 }

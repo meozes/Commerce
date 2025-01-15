@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.coupon;
+package kr.hhplus.be.server.interfaces.coupon;
 
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
@@ -20,16 +20,15 @@ import org.springframework.test.context.DynamicPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
-import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
 import org.testcontainers.junit.jupiter.Testcontainers;
-import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -99,7 +98,6 @@ class CouponControllerIntegrationTest {
         Long userId = 1L;
 
         // when
-
         ResultActions result = mockMvc.perform(
                 MockMvcRequestBuilders
                         .get("/api/coupons/{userId}", userId)
@@ -146,8 +144,9 @@ class CouponControllerIntegrationTest {
     @DisplayName("쿠폰 발급 API - 쿠폰을 정상적으로 발급한다")
     void issueCoupon() throws Exception {
         // given
-        Long userId = 3L;
-        Coupon coupon = couponRepository.getCoupon(savedCouponId); // setUp에서 생성한 쿠폰의 ID
+        Long userId = 10L;
+        Optional<Coupon> couponOptional = couponRepository.getCoupon(savedCouponId); // setUp에서 생성한 쿠폰의 ID
+        Coupon coupon = couponOptional.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
 
         // when
         ResultActions result = mockMvc.perform(
@@ -167,7 +166,8 @@ class CouponControllerIntegrationTest {
                 .andDo(print());
 
         // DB 검증
-        Coupon updatedCoupon = couponRepository.getCoupon(coupon.getId());
+        Optional<Coupon> updatedOptionalCoupon = couponRepository.getCoupon(coupon.getId());
+        Coupon updatedCoupon = updatedOptionalCoupon.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
         assertThat(updatedCoupon.getRemainingQuantity()).isEqualTo(99);
     }
 
@@ -264,7 +264,8 @@ class CouponControllerIntegrationTest {
         latch.await(10, TimeUnit.SECONDS);
 
         // then
-        Coupon updatedCoupon = couponRepository.getCoupon(couponId);
+        Optional<Coupon> updatedOptionalCoupon = couponRepository.getCoupon(couponId);
+        Coupon updatedCoupon = updatedOptionalCoupon.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
         assertThat(updatedCoupon.getRemainingQuantity()).isEqualTo(97); // 100 - 3
 
         // 각 사용자별로 쿠폰 발급 여부 확인

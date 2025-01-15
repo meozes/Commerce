@@ -1,13 +1,7 @@
 package kr.hhplus.be.server.domain.balance.usecase;
 
-import jakarta.persistence.EntityNotFoundException;
-import kr.hhplus.be.server.domain.balance.exception.ChargeBalanceException;
 import kr.hhplus.be.server.domain.balance.validation.AmountValidator;
 import kr.hhplus.be.server.domain.balance.validation.UserIdValidator;
-import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
-import org.springframework.dao.DataIntegrityViolationException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
-import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
@@ -19,7 +13,6 @@ import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -30,6 +23,9 @@ public class BalanceService {
     private final UserIdValidator userIdValidator;
     private final AmountValidator amountValidator;
 
+    /**
+     * 잔고 조회하기
+     */
     public BalanceInfo getBalance(BalanceQuery balanceQuery) {
         userIdValidator.validate(balanceQuery.getUserId());
         Balance balance = balanceRepository.getBalance(balanceQuery.getUserId())
@@ -37,6 +33,9 @@ public class BalanceService {
         return BalanceInfo.from(balance);
     }
 
+    /**
+     * 잔액 충전하기
+     */
     @Transactional
     public BalanceInfo chargeBalance(ChargeCommand command) {
         userIdValidator.validate(command.getUserId());
@@ -47,11 +46,9 @@ public class BalanceService {
             balance = createBalance(command.getUserId());
         }
 
-
         Integer beforeBalance = balance.getBalance();
         balance.charge(command.getChargeAmount());
         balance = balanceRepository.save(balance);
-
 
         historyRepository.saveHistory(
                 beforeBalance,
@@ -63,6 +60,9 @@ public class BalanceService {
         return BalanceInfo.from(balance);
     }
 
+    /**
+     * 금액 차감하기
+     */
     @Transactional
     public BalanceInfo deductBalance(Long userId, Integer amount) {
         userIdValidator.validate(userId);
@@ -87,6 +87,9 @@ public class BalanceService {
         return BalanceInfo.from(balance);
     }
 
+    /**
+     * 계좌 만들기
+     */
     @Transactional
     public Balance createBalance(Long userId) {
         Balance balance = Balance.builder()
