@@ -25,7 +25,7 @@ public class StockService {
      * 재고 차감하기
      */
     @Monitored
-//    @Monitoring
+    @Monitoring
     @Transactional
     public void deductStock(List<OrderItemCommand> orderItems) {
         log.info("[재고 차감 시작] orderItems={}", orderItems);
@@ -60,7 +60,7 @@ public class StockService {
      * 재고 복구하기
      */
     @Monitored
-//    @Monitoring
+    @Monitoring
     @Transactional
     public void restoreStock(List<OrderItem> orderItems) {
         log.info("[재고 복구 시작] orderItems={}", orderItems);

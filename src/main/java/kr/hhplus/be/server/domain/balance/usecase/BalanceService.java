@@ -41,7 +41,7 @@ public class BalanceService {
      * 잔액 충전하기
      */
     @Monitored
-//    @Monitoring
+    @Monitoring
     @Transactional
     public BalanceInfo chargeBalance(ChargeCommand command) {
 
@@ -78,7 +78,7 @@ public class BalanceService {
      * 잔고 차감하기
      */
     @Monitored
-//    @Monitoring
+    @Monitoring
     @Transactional
     public BalanceInfo deductBalance(Long userId, Integer amount) {
 

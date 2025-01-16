@@ -7,7 +7,8 @@ import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
-import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponFindService;
 import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -45,7 +46,10 @@ public class CouponServiceTest {
     private CouponValidator couponValidator;
 
     @InjectMocks
-    private CouponService couponService;
+    private CouponFindService couponFindService;
+
+    @InjectMocks
+    private CouponControlService couponControlService;
 
     /**
      * 쿠폰 발급 테스트
@@ -77,7 +81,7 @@ public class CouponServiceTest {
         when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
         when(issuedCouponRepository.save(any(IssuedCoupon.class))).thenReturn(issuedCoupon);
 
-        CouponInfo result = couponService.issueCoupon(command);
+        CouponInfo result = couponControlService.issueCoupon(command);
 
         // then
         assertNotNull(result);
@@ -108,7 +112,7 @@ public class CouponServiceTest {
 
         // then
         assertThrows(IllegalArgumentException.class, () -> {
-            couponService.issueCoupon(command);
+            couponControlService.issueCoupon(command);
         });
 
         verify(couponValidator).validateUserId(invalidUserId);
@@ -136,7 +140,7 @@ public class CouponServiceTest {
 
         // when & then
         assertThrows(IllegalStateException.class, () -> {
-            couponService.issueCoupon(command);
+            couponControlService.issueCoupon(command);
         });
 
         verify(couponValidator).validateUserId(userId);
@@ -172,7 +176,7 @@ public class CouponServiceTest {
 
         // when
         IllegalStateException exception = assertThrows(IllegalStateException.class, () ->
-                couponService.issueCoupon(command)
+                couponControlService.issueCoupon(command)
         );
 
         assertAll(
@@ -217,7 +221,7 @@ public class CouponServiceTest {
         when(couponRepository.getCoupon(eq(couponId)))
                 .thenReturn(Optional.ofNullable(coupon));
 
-        Page<CouponInfo> result = couponService.getIssuedCoupons(couponSearch);
+        Page<CouponInfo> result = couponFindService.getIssuedCoupons(couponSearch);
 
         // then
         assertAll(
@@ -256,7 +260,7 @@ public class CouponServiceTest {
 
         // then
         assertThrows(IllegalArgumentException.class, () -> {
-            couponService.getIssuedCoupons(couponSearch);
+            couponFindService.getIssuedCoupons(couponSearch);
         });
 
         // verify

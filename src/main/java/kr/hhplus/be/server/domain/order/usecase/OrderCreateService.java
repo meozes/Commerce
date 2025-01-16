@@ -30,7 +30,7 @@ public class OrderCreateService {
      * 주문 생성하기
      */
     @Monitored
-//    @Monitoring
+    @Monitoring
     @Transactional
     public OrderInfo createOrder(OrderCommand command, Integer originalAmount, Integer discountAmount, Integer finalAmount, IssuedCoupon issuedCoupon) {
 

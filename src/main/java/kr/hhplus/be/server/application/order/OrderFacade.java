@@ -3,7 +3,7 @@ package kr.hhplus.be.server.application.order;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
-import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
 import kr.hhplus.be.server.domain.order.dto.OrderAmountInfo;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
@@ -25,7 +25,7 @@ import java.util.stream.Collectors;
 public class OrderFacade {
     private final OrderCreateService orderCreateService;
     private final BalanceService balanceService;
-    private final CouponService couponService;
+    private final CouponControlService couponControlService;
     private final ProductService productService;
     private final StockService stockService;
     private final OrderValidator orderValidator;
@@ -56,7 +56,7 @@ public class OrderFacade {
         log.info("[재고 차감 완료] orderItems_size={}", command.getOrderItems().size());
 
         // 4. 쿠폰 사용처리
-        IssuedCoupon coupon = command.getCouponId() != null ? couponService.useIssuedCoupon(command.getCouponId()) : null;
+        IssuedCoupon coupon = command.getCouponId() != null ? couponControlService.useIssuedCoupon(command.getCouponId()) : null;
         log.info("[쿠폰 사용 처리 완료] couponId={}", command.getCouponId());
 
         // 5. 금액 계산

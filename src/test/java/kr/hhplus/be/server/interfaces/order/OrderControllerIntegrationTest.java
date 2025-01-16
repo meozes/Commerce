@@ -8,7 +8,6 @@ import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
 import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
-import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
@@ -40,6 +39,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.concurrent.CountDownLatch;
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -83,9 +83,6 @@ class OrderControllerIntegrationTest {
 
     @Autowired
     private ProductService productService;
-
-    @Autowired
-    private CouponService couponService;
 
     private Product cookie;
     private Product milk;
@@ -219,7 +216,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     @DisplayName("주문 생성 API - 주문 생성이 성공한다.")
-    void createOrderSuccess() throws Exception {
+    void createOrder_Success() throws Exception {
         // given
         Long userId = 1L;
 
@@ -278,7 +275,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     @DisplayName("주문 생성 API - 재고 부족 시 주문이 실패한다.")
-    void createOrderFailWhenInsufficientStock() throws Exception {
+    void createOrder_Insufficient_Stock() throws Exception {
         // given
         Long userId = 2L;
 
@@ -313,7 +310,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     @DisplayName("주문 생성 API - 존재하지 않는 쿠폰으로 주문 시도 시 실패한다.")
-    void createOrderFailWithInvalidCoupon() throws Exception {
+    void createOrder_Invalid_Coupon() throws Exception {
         // given
         Long userId = 1L;
         Long invalidCouponId = 999L;
@@ -349,7 +346,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     @DisplayName("주문 생성 API - 만료된 쿠폰으로 주문 시도 시 실패한다.")
-    void createOrderFailWithExpiredCoupon() throws Exception {
+    void createOrder_Expired_Coupon() throws Exception {
         // given
         Long userId = 3L;
 
@@ -385,7 +382,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     @DisplayName("주문 생성 API - 이미 사용된 쿠폰으로 주문 시도 시 실패한다.")
-    void createOrderFailWithUsedCoupon() throws Exception {
+    void createOrder_UsedCoupon() throws Exception {
         // given
         Long userId = 4L;
 
@@ -418,6 +415,87 @@ class OrderControllerIntegrationTest {
         assertThat(orderRepository.findAll()).isEmpty();
     }
 
-    //TODO : 주문 동시성 테스트(재고관련)
+//    @Test
+//    @DisplayName("결제 요청 API - 동시성 테스트. 비관적 락을 통해 재고 차감 시 정확한 재고를 관리한다.")
+//    void stockDeduction_Concurrently() throws Exception {
+//        // given
+//        final int STOCK_QUANTITY = 4;
+//
+//        Product product = createAndSaveProduct();
+//        Stock stock = Stock.builder()
+//                .product(product)
+//                .originStock(STOCK_QUANTITY)
+//                .remainingStock(STOCK_QUANTITY)
+//                .build();
+//        stockRepository.save(stock);
+//
+//        CountDownLatch firstTransactionStarted = new CountDownLatch(1);
+//        CountDownLatch lockAcquiredLatch = new CountDownLatch(1);
+//        CountDownLatch secondTransactionComplete = new CountDownLatch(1);
+//
+//        AtomicReference<LocalDateTime> firstLockTime = new AtomicReference<>();
+//        AtomicReference<LocalDateTime> secondLockTime = new AtomicReference<>();
+//
+//        // 첫 번째 트랜잭션
+//        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
+//
+//        Thread firstThread = new Thread(() -> {
+//            transactionTemplate.execute(status -> {
+//                try {
+//                    firstTransactionStarted.countDown();
+//
+//                    Stock lockedStock = stockRepository.getStockWithLock(product.getId());
+//                    firstLockTime.set(LocalDateTime.now());
+//
+//                    lockAcquiredLatch.countDown();
+//                    Thread.sleep(3000); // 3초 대기
+//
+//                    lockedStock.deductStock(2);
+//                    stockRepository.save(lockedStock);
+//
+//                    return null;
+//                } catch (InterruptedException e) {
+//                    throw new RuntimeException(e);
+//                }
+//            });
+//        });
+//
+//        // 두 번째 트랜잭션
+//        Thread secondThread = new Thread(() -> {
+//            try {
+//                firstTransactionStarted.await(); // 첫 번째 트랜잭션이 시작될 때까지 대기
+//                lockAcquiredLatch.await(); // 첫 번째 트랜잭션이 락을 획득할 때까지 대기
+//
+//                transactionTemplate.execute(status -> {
+//                    Stock lockedStock = stockRepository.getStockWithLock(product.getId());
+//                    secondLockTime.set(LocalDateTime.now());
+//                    lockedStock.deductStock(2);
+//                    stockRepository.save(lockedStock);
+//
+//                    secondTransactionComplete.countDown();
+//                    return null;
+//                });
+//            } catch (InterruptedException e) {
+//                throw new RuntimeException(e);
+//            }
+//        });
+//
+//        // 스레드 실행
+//        firstThread.start();
+//        secondThread.start();
+//
+//        // 모든 트랜잭션 완료 대기
+//        boolean completed = secondTransactionComplete.await(10, TimeUnit.SECONDS);
+//        assertThat(completed).isTrue();
+//
+//        // then
+//        // 1. 락 획득 시점 검증
+//        Duration between = Duration.between(firstLockTime.get(), secondLockTime.get());
+//        assertThat(between.toMillis()).isGreaterThanOrEqualTo(2900); // 최소 3초 대기 시간 검증
+//
+//        // 2. 최종 재고 상태 검증
+//        Stock updatedStock = stockRepository.findById(stock.getId()).orElseThrow();
+//        assertThat(updatedStock.getRemainingStock()).isEqualTo(0); // 4개 재고가 2개씩 정확히 차감됨
+//    }
 
 }

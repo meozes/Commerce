@@ -2,50 +2,30 @@ package kr.hhplus.be.server.domain.coupon.usecase;
 
 import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
-import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
-import kr.hhplus.be.server.domain.coupon.dto.CouponSearch;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
-import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
+import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
+import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
-
 @Slf4j
 @Service
 @RequiredArgsConstructor
-public class CouponService {
+public class CouponControlService {
+    private final CouponFindService couponFindService;
     private final CouponRepository couponRepository;
     private final IssuedCouponRepository issuedCouponRepository;
     private final CouponValidator couponValidator;
-
-    /**
-     * 유저가 발급받은 쿠폰 내역 조회
-     */
-    public Page<CouponInfo> getIssuedCoupons(CouponSearch couponSearch) {
-        couponValidator.validateUserId(couponSearch.getUserId());
-        Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.getIssuedCoupons(couponSearch.toPageRequest(), couponSearch.getUserId());
-
-        return issuedCoupons.map(issuedCoupon -> {
-            Coupon coupon = couponRepository.getCoupon(issuedCoupon.getCoupon().getId()).orElseThrow(
-                    () -> new NoSuchElementException(ErrorCode.INVALID_COUPON.getMessage() + " id=" + issuedCoupon.getCoupon().getId())
-            );
-            return CouponInfo.builder()
-                    .coupon(coupon)
-                    .issuedCoupon(issuedCoupon)
-                    .build();
-        });
-    }
 
     /**
      * 쿠폰 사용하기
@@ -55,17 +35,9 @@ public class CouponService {
         if (couponId == null){
             return null;
         }
-        IssuedCoupon coupon = getIssuedCoupon(couponId);
+        IssuedCoupon coupon = couponFindService.getIssuedCoupon(couponId);
         coupon.use();
         return coupon;
-    }
-
-    /**
-     * 특정 발급 받은 쿠폰 조회하기
-     */
-    public IssuedCoupon getIssuedCoupon(Long issueCouponId) {
-        return issuedCouponRepository.getIssuedCoupon(issueCouponId).orElseThrow(
-                () -> new NoSuchElementException(ErrorCode.COUPON_NOT_FOUND.getMessage()));
     }
 
     /**
@@ -94,11 +66,11 @@ public class CouponService {
 
         // 3. 발급 내역 저장
         IssuedCoupon issuedCoupon = IssuedCoupon.builder()
-               .coupon(decreased)
-               .userId(command.getUserId())
+                .coupon(decreased)
+                .userId(command.getUserId())
                 .couponStatus(CouponStatusType.NEW)
                 .issuedAt(LocalDateTime.now())
-               .build();
+                .build();
         IssuedCoupon issued = issuedCouponRepository.save(issuedCoupon);
 
         log.info("[쿠폰 발급 완료] userId={}, couponId={}, issuedCouponId={}, beforeQuantity={}, remainingQuantity={}",
@@ -109,9 +81,9 @@ public class CouponService {
                 decreased.getRemainingQuantity());
 
         return CouponInfo.builder()
-               .coupon(coupon)
-               .issuedCoupon(issuedCoupon)
-               .build();
+                .coupon(coupon)
+                .issuedCoupon(issuedCoupon)
+                .build();
 
     }
 
@@ -125,16 +97,16 @@ public class CouponService {
         couponRepository.getCouponWithLock(orderId, userId)
                 .ifPresent(
                         coupon -> {
-                    coupon.revertRemainingQuantity();
-                    couponRepository.save(coupon);
+                            coupon.revertRemainingQuantity();
+                            couponRepository.save(coupon);
 
-                    IssuedCoupon issuedCoupon = issuedCouponRepository.getOrderIssuedCoupon(orderId, userId)
-                            .orElseThrow(() -> new NoSuchElementException(ErrorCode.COUPON_NOT_FOUND.getMessage()));
-                    issuedCoupon.revert();
-                    issuedCouponRepository.save(issuedCoupon);
+                            IssuedCoupon issuedCoupon = issuedCouponRepository.getOrderIssuedCoupon(orderId, userId)
+                                    .orElseThrow(() -> new NoSuchElementException(ErrorCode.COUPON_NOT_FOUND.getMessage()));
+                            issuedCoupon.revert();
+                            issuedCouponRepository.save(issuedCoupon);
 
-                    log.info("[쿠폰 복구 완료] couponId={}, remainingCouponQuantity={}" , coupon.getId(), coupon.getRemainingQuantity());
-                });
+                            log.info("[쿠폰 복구 완료] couponId={}, remainingCouponQuantity={}" , coupon.getId(), coupon.getRemainingQuantity());
+                        });
 
     }
 }

@@ -93,7 +93,7 @@ class CouponControllerIntegrationTest {
 
     @Test
     @DisplayName("쿠폰 목록 조회 API - 사용자의 쿠폰 목록을 정상적으로 조회한다")
-    void getCoupons() throws Exception {
+    void getCoupons_Success() throws Exception {
         // given
         Long userId = 1L;
 
@@ -119,7 +119,7 @@ class CouponControllerIntegrationTest {
 
     @Test
     @DisplayName("쿠폰 목록 조회 API - 존재하지 않는 사용자의 쿠폰 목록을 조회하면 빈 페이지를 반환한다")
-    void getCouponsWithNonExistentUser() throws Exception {
+    void getCoupons_WithNonExistentUser_Empty() throws Exception {
         // given
         Long nonExistentUserId = 999L;
 
@@ -172,8 +172,8 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("쿠폰 발급 API - 존재하지 않는 쿠폰 발급 시 예외가 발생한다")
-    void issueCouponWithNonExistentCoupon() throws Exception {
+    @DisplayName("쿠폰 발급 API - 존재하지 않는 쿠폰 발급 시 NoSuchElementException 예외가 발생한다")
+    void issueCoupon_WithNonExistentCoupon() throws Exception {
         // given
         Long userId = 1L;
         Long nonExistentCouponId = 999L;
@@ -191,8 +191,8 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("쿠폰 발급 API - 잘못된 사용자 ID로 쿠폰 발급 시 예외가 발생한다")
-    void issueCouponWithInvalidUserId() throws Exception {
+    @DisplayName("쿠폰 발급 API - 잘못된 사용자 ID로 쿠폰 발급 시 INVALID_USER_ID 예외가 발생한다")
+    void issueCoupon_WithInvalidUserId() throws Exception {
         // given
         Long invalidUserId = -1L;
         Long couponId = 1L; // setUp에서 생성한 쿠폰의 ID
@@ -210,8 +210,8 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("쿠폰 발급 API - 수량이 모두 소진된 쿠폰 발급 시 예외가 발생한다")
-    void issueCouponWithNoQuantity() throws Exception {
+    @DisplayName("쿠폰 발급 API - 수량이 모두 소진된 쿠폰 발급 시 COUPON_OUT_OF_STOCK 예외가 발생한다")
+    void issueCoupon_WithNoQuantity() throws Exception {
         // given
         Long userId = 1L;
         Coupon coupon = Coupon.builder()
@@ -237,7 +237,7 @@ class CouponControllerIntegrationTest {
 
     @Test
     @DisplayName("쿠폰 발급 API - 동시성 테스트. 서로 다른 3명의 사용자가 동일한 쿠폰을 동시에 발급 요청하면 정상적으로 처리된다")
-    void issueCouponConcurrently() throws Exception {
+    void issueCoupon_Concurrently() throws Exception {
         // given
         int numberOfThreads = 3;
         List<Long> userIds = Arrays.asList(5L, 6L, 7L); // 서로 다른 3명의 사용자
@@ -275,8 +275,4 @@ class CouponControllerIntegrationTest {
             assertThat(issuedCoupons.getContent()).hasSize(1); // 각 사용자당 1개씩만 발급되어야 함
         }
     }
-
-
-
-
 }

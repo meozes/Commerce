@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.domain.balance.exception.NotEnoughBalanceException;
-import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
@@ -33,7 +33,7 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final BalanceService balanceService;
     private final StockService stockService;
-    private final CouponService couponService;
+    private final CouponControlService couponControlService;
     private final OrderValidator orderValidator;
     private final OrderEventSender orderEventSender;
 
@@ -74,7 +74,7 @@ public class PaymentFacade {
             stockService.restoreStock(items);
 
             // 3-2. 쿠폰 사용 시 쿠폰 복구
-            couponService.revertRemainingQuantity(order.getId(), command.getUserId());
+            couponControlService.revertRemainingQuantity(order.getId(), command.getUserId());
 
             // 3-3. 결제 실패 처리
             orderControlService.cancelOrder(order);
