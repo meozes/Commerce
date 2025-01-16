@@ -9,6 +9,8 @@ import kr.hhplus.be.server.domain.payment.repository.PaymentRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @RequiredArgsConstructor
 public class PaymentService {
@@ -27,5 +29,9 @@ public class PaymentService {
                 .paymentStatus(PaymentStatusType.COMPLETED)
                 .build();
         return paymentRepository.save(payment);
+    }
+
+    public Optional<Payment> getPayment(PaymentCommand command) {
+        return paymentRepository.findByOrderId(command.getOrderId());
     }
 }

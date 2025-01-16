@@ -205,7 +205,7 @@ class PaymentControllerIntegrationTest {
     }
 
     private void verifyPaymentStatus(Long orderId) {
-        Payment payment = paymentRepository.findByOrderId(orderId);
+        Payment payment = paymentRepository.findByOrderId(orderId).orElseThrow();
         assertThat(payment.getPaymentStatus()).isEqualTo(PaymentStatusType.COMPLETED);
     }
 

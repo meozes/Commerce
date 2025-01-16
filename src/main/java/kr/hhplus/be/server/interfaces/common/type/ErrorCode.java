@@ -39,7 +39,8 @@ public enum ErrorCode {
 
     // Payment
     INVALID_PAYMENT_AMOUNT("결제 금액은 0보다 커야 합니다."),
-    PAYMENT_AMOUNT_MISMATCH("결제 금액이 주문서와 불일치 합니다.");
+    PAYMENT_AMOUNT_MISMATCH("결제 금액이 주문서와 불일치 합니다."),
+    PAYMENT_ALREADY_COMPLETED("이미 결제된 주문입니다.");
 
 
     private final String message;

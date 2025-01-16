@@ -2,8 +2,13 @@ package kr.hhplus.be.server.interfaces.balance;
 
 import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
+import kr.hhplus.be.server.domain.order.entity.Order;
+import kr.hhplus.be.server.domain.order.repository.OrderRepository;
+import kr.hhplus.be.server.domain.order.type.OrderStatusType;
+import kr.hhplus.be.server.domain.payment.type.PaymentStatusType;
 import kr.hhplus.be.server.interfaces.balance.request.ChargeRequest;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
+import kr.hhplus.be.server.interfaces.payment.request.PaymentRequest;
 import org.junit.jupiter.api.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
@@ -40,6 +45,9 @@ class BalanceControllerIntegrationTest {
 
     @Autowired
     private BalanceRepository balanceRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Container
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
@@ -145,7 +153,7 @@ class BalanceControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("잔고 충전 API - 음수 금액으로 충전 시도하면 실패한다")
+    @DisplayName("잔고 충전 API - 유효하지 않은 금액으로 충전 시도하면 IllegalArgumentException 예외가 발생한다")
     void chargeBalance_NegativeAmount_ReturnsBadRequest() throws Exception {
         // given
         Long userId = 1L;
@@ -204,7 +212,7 @@ class BalanceControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("잔고 충전 API - 동시성 테스트. 동시에 여러 충전 요청이 들어와도 정확한 금액이 충전된다") //TODO: 충전, 사용 동시성 테스트
+    @DisplayName("잔고 충전 API - 동시성 테스트. 동시에 여러 충전 요청이 들어와도 정확한 금액이 충전된다")
     void chargeBalance_ConcurrentCharges_CorrectFinalBalance() throws Exception {
         // given
         Long userId = 33L;
@@ -270,6 +278,104 @@ class BalanceControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.userId").value(userId))
                 .andExpect(jsonPath("$.data.amount").value(expectedBalance))
                 .andDo(print());
+    }
+
+    @Test
+    @DisplayName("잔고 충전 API - 동시성 테스트. 동시에 충전과 사용 요청이 들어와도 정확한 금액이 계산된다.")
+    void chargeBalance_ConcurrentCharges_chargeAndUseSameTime() throws Exception {
+        Long userId = 77L;
+        Integer initialBalance = 100000;
+        Balance balance = Balance.builder()
+                .userId(userId)
+                .balance(initialBalance)
+                .build();
+        balanceRepository.save(balance);
+
+        Order order = Order.builder()
+                .id(1L)
+                .userId(userId)
+                .originalAmount(5000)
+                .finalAmount(5000)
+                .discountAmount(0)
+                .orderStatus(OrderStatusType.PENDING)
+                .build();
+        orderRepository.save(order);
+
+        int chargeNumberOfThreads = 3;
+        int payNumberOfThread = 1;
+        ExecutorService executorService = Executors.newFixedThreadPool(chargeNumberOfThreads);
+        ExecutorService executorService2 = Executors.newFixedThreadPool(payNumberOfThread);
+        CountDownLatch latch = new CountDownLatch(chargeNumberOfThreads * 2);
+        CountDownLatch latch2 = new CountDownLatch(payNumberOfThread * 2);
+        Integer chargeAmount = 50000;
+        Integer useAmount = 5000;
+
+        List<Future<ResultActions>> chargeFutures = new ArrayList<>();
+        List<Future<ResultActions>> paymentFutures = new ArrayList<>();
+
+        // 충전 요청
+        for (int i = 0; i < chargeNumberOfThreads; i++) {
+            chargeFutures.add(executorService.submit(() -> {
+                try {
+                    ChargeRequest request = new ChargeRequest(userId, chargeAmount);
+                    return mockMvc.perform(
+                            MockMvcRequestBuilders
+                                    .post("/api/balance/charge")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(request))
+                    );
+                } finally {
+                    latch.countDown();
+                }
+            }));
+        }
+
+        // 결제 요청
+        for (int i = 0; i < payNumberOfThread; i++) {
+            paymentFutures.add(executorService.submit(() -> {
+                try {
+                    PaymentRequest paymentRequest = new PaymentRequest(userId, order.getId(), useAmount);
+                    return mockMvc.perform(
+                            MockMvcRequestBuilders
+                                    .post("/api/payments")
+                                    .contentType(MediaType.APPLICATION_JSON)
+                                    .content(objectMapper.writeValueAsString(paymentRequest))
+                    );
+                } finally {
+                    latch.countDown();
+                }
+            }));
+        }
+
+        latch.await(10, TimeUnit.SECONDS);
+        latch2.await(10, TimeUnit.SECONDS);
+        executorService.shutdown();
+        executorService2.shutdown();
+
+        for (Future<ResultActions> future : chargeFutures) {
+            future.get()
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.status").value("OK"))
+                    .andExpect(jsonPath("$.data.userId").value(userId))
+                    .andExpect(jsonPath("$.data.chargedAmount").value(chargeAmount));
+        }
+
+        for (Future<ResultActions> future : paymentFutures) {
+            future.get()
+                    .andExpect(status().isOk())
+                    .andExpect(jsonPath("$.code").value(200))
+                    .andExpect(jsonPath("$.status").value("OK"))
+                    .andExpect(jsonPath("$.data.orderId").value(order.getId()))
+                    .andExpect(jsonPath("$.data.userId").value(userId))
+                    .andExpect(jsonPath("$.data.status").value("COMPLETED"));
+        }
+
+        // DB에서 최종 잔고 확인
+        Balance finalBalance = balanceRepository.getBalance(userId).orElseThrow();
+        Integer expectedBalance = initialBalance + (chargeAmount * chargeNumberOfThreads) - (useAmount * payNumberOfThread);
+        assertThat(finalBalance.getBalance()).isEqualTo(expectedBalance);
+
     }
 
 }

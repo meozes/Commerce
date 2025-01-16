@@ -55,8 +55,14 @@ public class PaymentFacade {
                         .map(item -> String.format("상품ID:%d, 수량:%d", item.getProductId(), item.getQuantity()))
                         .collect(Collectors.toList()));
 
+        // 2. 결제 조회
+        paymentService.getPayment(command)
+                .ifPresent(payment -> {
+                    throw new IllegalStateException(ErrorCode.PAYMENT_ALREADY_COMPLETED.getMessage());
+                });
+
         try {
-            // 2. 잔고 조회, 차감
+            // 3. 잔고 조회, 차감
             balanceService.deductBalance(command.getUserId(), command.getAmount());
         } catch (NotEnoughBalanceException e) {
             log.warn("[결제 실패 - 잔액 부족] orderId={}, userId={}, requestAmount={}",
