@@ -24,10 +24,6 @@ public interface ProductRepositoryImpl extends JpaRepository<Product, Long>, Pro
         return findAll((Pageable) pageRequest);
     }
 
-    @Override
-    default Product save(Product product) {
-        return saveAndFlush(product);
-    }
 
     @Override
     default List<Product> findAll() {

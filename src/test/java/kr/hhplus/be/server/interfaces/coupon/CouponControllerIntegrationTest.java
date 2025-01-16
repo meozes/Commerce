@@ -78,7 +78,7 @@ class CouponControllerIntegrationTest {
                 .remainingQuantity(100)
                 .dueDate(LocalDate.now().plusDays(30))
                 .build();
-        couponRepository.saveCoupon(coupon);
+        couponRepository.save(coupon);
         savedCouponId = coupon.getId();
 
         Long userId = 1L;
@@ -88,7 +88,7 @@ class CouponControllerIntegrationTest {
                 .couponStatus(CouponStatusType.NEW)
                 .issuedAt(LocalDateTime.now())
                 .build();
-        issuedCouponRepository.saveIssuedCoupon(issuedCoupon);
+        issuedCouponRepository.save(issuedCoupon);
     }
 
     @Test
@@ -221,7 +221,7 @@ class CouponControllerIntegrationTest {
                 .remainingQuantity(0)
                 .dueDate(LocalDate.now().plusDays(30))
                 .build();
-        couponRepository.saveCoupon(coupon);
+        couponRepository.save(coupon);
 
         // when
         ResultActions result = mockMvc.perform(

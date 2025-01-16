@@ -14,11 +14,12 @@ public interface IssuedCouponRepository {
 
     Page<IssuedCoupon> getIssuedCoupons(PageRequest pageRequest, Long userId);
 
-    IssuedCoupon saveIssuedCoupon(IssuedCoupon issuedCoupon);
-
     @Query("SELECT ic FROM IssuedCoupon ic JOIN FETCH ic.coupon c WHERE ic.id = :issueCouponId")
     Optional<IssuedCoupon> getIssuedCoupon(@Param("issueCouponId") Long issueCouponId);
 
     @Query("SELECT ic FROM IssuedCoupon ic JOIN FETCH ic.coupon c WHERE ic.coupon.id = :couponId AND ic.userId = :userId")
     Optional<IssuedCoupon> getUserIssuedCoupon(@Param("couponId") Long couponId, @Param("userId") Long userId);
+
+    @Query("SELECT ic FROM IssuedCoupon ic WHERE ic.orderId = :orderId AND ic.userId = :userId")
+    Optional<IssuedCoupon> getOrderIssuedCoupon(@Param("orderId") Long orderId, @Param("userId") Long userId);
 }

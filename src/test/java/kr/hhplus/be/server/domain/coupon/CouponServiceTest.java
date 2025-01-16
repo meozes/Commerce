@@ -74,7 +74,8 @@ public class CouponServiceTest {
         doNothing().when(couponValidator).validateUserId(userId);
         doNothing().when(couponValidator).validateCouponQuantity(coupon);
         when(couponRepository.getCouponWithLock(couponId)).thenReturn(Optional.of(coupon));
-        when(issuedCouponRepository.saveIssuedCoupon(any(IssuedCoupon.class))).thenReturn(issuedCoupon);
+        when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
+        when(issuedCouponRepository.save(any(IssuedCoupon.class))).thenReturn(issuedCoupon);
 
         CouponInfo result = couponService.issueCoupon(command);
 
@@ -88,8 +89,8 @@ public class CouponServiceTest {
         verify(couponValidator).validateUserId(userId);
         verify(couponValidator).validateCouponQuantity(coupon);
         verify(couponRepository).getCouponWithLock(couponId);
-        verify(couponRepository).saveCoupon(coupon);
-        verify(issuedCouponRepository).saveIssuedCoupon(any(IssuedCoupon.class));
+        verify(couponRepository).save(coupon);
+        verify(issuedCouponRepository).save(any(IssuedCoupon.class));
     }
 
     @Test

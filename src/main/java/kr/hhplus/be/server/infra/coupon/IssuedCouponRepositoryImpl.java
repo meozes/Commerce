@@ -19,11 +19,6 @@ public interface IssuedCouponRepositoryImpl extends JpaRepository<IssuedCoupon, 
     }
 
     @Override
-    default IssuedCoupon saveIssuedCoupon(IssuedCoupon issuedCoupon) {
-        return saveAndFlush(issuedCoupon);
-    }
-
-    @Override
     default Optional<IssuedCoupon> getIssuedCoupon(Long issueCouponId){
         return findById(issueCouponId);
     }

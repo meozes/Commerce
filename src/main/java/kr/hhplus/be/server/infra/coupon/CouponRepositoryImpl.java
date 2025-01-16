@@ -12,8 +12,4 @@ public interface CouponRepositoryImpl extends JpaRepository<Coupon, Long>, Coupo
     @Override
     default Optional<Coupon> getCoupon(Long couponId) {return findById(couponId);}
 
-    @Override
-    default void saveCoupon(Coupon coupon) {
-        saveAndFlush(coupon);
-    }
 }

@@ -42,11 +42,15 @@ public class IssuedCoupon extends BaseTimeEntity {
         }
 
         if (this.coupon.getDueDate().isBefore(LocalDate.now())) {
+            this.couponStatus = CouponStatusType.EXPIRED;
             throw new IllegalStateException(ErrorCode.COUPON_EXPIRED.getMessage() + " 만료 일자 = " + this.coupon.getDueDate());
         }
+    }
 
-        this.couponStatus = CouponStatusType.USED;
-        this.usedAt = LocalDateTime.now();
+    public void revert() {
+        this.couponStatus = CouponStatusType.NEW;
+        this.orderId = null;
+        this.usedAt = null;
     }
 
     public void assignOrderToCoupon(Order order) {

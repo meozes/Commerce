@@ -23,9 +23,4 @@ public interface StockRepositoryImpl extends JpaRepository<Stock, Long>, StockRe
     Stock findByProductId(Long productId);
     List<Stock> findByProductIdIn(Collection<Long> productIds);
 
-    @Override
-    default Stock save(Stock stock) {
-        return saveAndFlush(stock);
-    }
-
 }

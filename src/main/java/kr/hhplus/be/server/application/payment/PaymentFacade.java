@@ -64,10 +64,10 @@ public class PaymentFacade {
                     command.getUserId(),
                     command.getAmount());
 
-            // 3-1. 실패 시 재고 복구, 쿠폰 복구, 결제 실패 처리
+            // 3-1. 재고 복구
             stockService.restoreStock(items);
 
-            // 3-2. 쿠폰 복구 (수량 증가, 상태 되돌리기)
+            // 3-2. 쿠폰 사용 시 쿠폰 복구
             couponService.revertRemainingQuantity(order.getId(), command.getUserId());
 
             // 3-3. 결제 실패 처리

@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.coupon.usecase;
 
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
@@ -12,6 +13,7 @@ import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.Page;
 import org.springframework.stereotype.Service;
 
@@ -19,6 +21,7 @@ import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class CouponService {
@@ -68,8 +71,12 @@ public class CouponService {
     /**
      * 쿠폰 발급하기
      */
+    @Monitored
     @Transactional
     public CouponInfo issueCoupon(CouponCommand command) {
+
+        log.info("[쿠폰 발급 시작] userId={}, couponId={}", command.getUserId(), command.getCouponId());
+
         couponValidator.validateUserId(command.getUserId());
         issuedCouponRepository.getUserIssuedCoupon(command.getCouponId(), command.getUserId())
                 .ifPresent(coupon -> {
@@ -83,16 +90,23 @@ public class CouponService {
 
         // 2. 쿠폰 잔량 감소
         coupon.decreaseRemainingQuantity();
-        couponRepository.saveCoupon(coupon);
+        Coupon decreased = couponRepository.save(coupon);
 
         // 3. 발급 내역 저장
         IssuedCoupon issuedCoupon = IssuedCoupon.builder()
-               .coupon(coupon)
+               .coupon(decreased)
                .userId(command.getUserId())
                 .couponStatus(CouponStatusType.NEW)
                 .issuedAt(LocalDateTime.now())
                .build();
-        issuedCouponRepository.saveIssuedCoupon(issuedCoupon);
+        IssuedCoupon issued = issuedCouponRepository.save(issuedCoupon);
+
+        log.info("[쿠폰 발급 완료] userId={}, couponId={}, issuedCouponId={}, beforeQuantity={}, remainingQuantity={}",
+                command.getUserId(),
+                command.getCouponId(),
+                issued.getId(),
+                coupon.getRemainingQuantity(),
+                decreased.getRemainingQuantity());
 
         return CouponInfo.builder()
                .coupon(coupon)
@@ -101,4 +115,26 @@ public class CouponService {
 
     }
 
+    /**
+     * 쿠폰 수량 복구하기
+     */
+    @Monitored
+    @Transactional
+    public void revertRemainingQuantity(Long orderId, Long userId) {
+
+        couponRepository.getCouponWithLock(orderId, userId)
+                .ifPresent(
+                        coupon -> {
+                    coupon.revertRemainingQuantity();
+                    couponRepository.save(coupon);
+
+                    IssuedCoupon issuedCoupon = issuedCouponRepository.getOrderIssuedCoupon(orderId, userId)
+                            .orElseThrow(() -> new NoSuchElementException(ErrorCode.COUPON_NOT_FOUND.getMessage()));
+                    issuedCoupon.revert();
+                    issuedCouponRepository.save(issuedCoupon);
+
+                    log.info("[쿠폰 복구 완료] couponId={}, remainingCouponQuantity={}" , coupon.getId(), coupon.getRemainingQuantity());
+                });
+
+    }
 }
