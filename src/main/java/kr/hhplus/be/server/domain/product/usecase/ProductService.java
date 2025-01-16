@@ -72,4 +72,11 @@ public class ProductService {
                     getProduct(productSearch);
                 });
     }
+
+    public void validateProducts(List<OrderItemCommand> orderItems) {
+        orderItems.forEach(item -> {
+            productRepository.getProduct(item.getProductId())
+                    .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_NOT_FOUND.getMessage()));
+        });
+    }
 }

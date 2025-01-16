@@ -4,6 +4,7 @@ import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.product.entity.Product;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
+import kr.hhplus.be.server.domain.product.usecase.ProductService;
 import kr.hhplus.be.server.domain.product.usecase.StockService;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
@@ -26,6 +27,9 @@ class StockServiceTest {
 
     @Mock
     private StockRepository stockRepository;
+
+    @Mock
+    private ProductService productService;
 
     @InjectMocks
     private StockService stockService;
@@ -51,7 +55,7 @@ class StockServiceTest {
         when(stockRepository.getStockWithLock(productId)).thenReturn(Optional.of(stock));
 
         // when
-        stockService.deductStock(itemList);
+        stockService.validateAndDeductStock(itemList);
 
         // then
         assertEquals(17, stock.getRemainingStock());
@@ -79,7 +83,7 @@ class StockServiceTest {
 
         // when & then
         assertThrows(NoSuchElementException.class,
-                () -> stockService.deductStock(itemList));
+                () -> stockService.validateAndDeductStock(itemList));
         verify(stockRepository).getStockWithLock(productId);
     }
 
@@ -105,7 +109,7 @@ class StockServiceTest {
 
         // when & then
         IllegalStateException exception = assertThrows(IllegalStateException.class,
-                () -> stockService.deductStock(itemList));
+                () -> stockService.validateAndDeductStock(itemList));
 
         assertTrue(exception.getMessage().contains("상품의 재고가 부족합니다"));
         verify(stockRepository).getStockWithLock(productId);

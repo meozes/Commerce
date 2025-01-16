@@ -10,7 +10,6 @@ import kr.hhplus.be.server.domain.order.dto.OrderInfo;
 import kr.hhplus.be.server.domain.order.service.OrderAmountCalculator;
 import kr.hhplus.be.server.domain.order.usecase.*;
 import kr.hhplus.be.server.domain.order.validation.OrderValidator;
-import kr.hhplus.be.server.domain.product.usecase.ProductService;
 import kr.hhplus.be.server.domain.product.usecase.StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -26,7 +25,6 @@ public class OrderFacade {
     private final OrderCreateService orderCreateService;
     private final BalanceService balanceService;
     private final CouponControlService couponControlService;
-    private final ProductService productService;
     private final StockService stockService;
     private final OrderValidator orderValidator;
     private final OrderAmountCalculator orderAmountCalculator;
@@ -51,8 +49,7 @@ public class OrderFacade {
         log.info("[계좌 여부 확인 완료] userId={}", command.getUserId());
 
         // 3. 재고 확인, 차감
-        productService.getOrderProduct(command.getOrderItems());
-        stockService.deductStock(command.getOrderItems());
+        stockService.validateAndDeductStock(command.getOrderItems());
         log.info("[재고 차감 완료] orderItems_size={}", command.getOrderItems().size());
 
         // 4. 쿠폰 사용처리

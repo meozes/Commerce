@@ -24,4 +24,6 @@ public interface BalanceRepository {
     Balance save(Balance balance);
 
     Optional<Balance> findById(Long id);
+
+    Optional<Balance> findByUserId(Long userId);
 }

@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.interfaces.order;
 
-import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
@@ -37,9 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
-import java.util.concurrent.CountDownLatch;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -86,14 +84,9 @@ class OrderControllerIntegrationTest {
 
     private Product cookie;
     private Product milk;
-    private Stock cookieStock;
-    private Stock milkStock;
-    private Coupon newCoupon;
-    private Coupon expired;
-    private Coupon used;
-    private IssuedCoupon couponFor1;  // 새로운 쿠폰
-    private IssuedCoupon couponFor3;  // 만료된 쿠폰
-    private IssuedCoupon couponFor4;  // 사용된 쿠폰
+    private IssuedCoupon normalCoupon;
+    private IssuedCoupon expiredCoupon;
+    private IssuedCoupon usedCoupon;
 
 
     @Container
@@ -120,97 +113,70 @@ class OrderControllerIntegrationTest {
     }
 
 
-
     @BeforeEach
     void setUp() {
-        Product product = Product.builder()
+        // 상품 설정
+        cookie = productRepository.save(Product.builder()
                 .productName("쿠키")
                 .price(10000)
-                .build();
-        this.cookie = productRepository.save(product);
+                .build());
 
-        Product product2 = Product.builder()
+        milk = productRepository.save(Product.builder()
                 .productName("비싼 우유")
                 .price(50000)
-                .build();
-        this.milk = productRepository.save(product2);
+                .build());
 
-        Stock stock = Stock.builder()
-                .product(product)
+        // 재고 설정
+        stockRepository.save(Stock.builder()
+                .product(cookie)
                 .originStock(100)
                 .remainingStock(100)
-                .build();
-        this.cookieStock = stockRepository.save(stock);
+                .build());
 
-        Stock stock2 = Stock.builder()
-                .product(product2)
+        stockRepository.save(Stock.builder()
+                .product(milk)
                 .originStock(5)
                 .remainingStock(5)
-                .build();
-        this.milkStock = stockRepository.save(stock2);
+                .build());
 
-        Coupon coupon = Coupon.builder()
+        // 쿠폰 설정
+        Coupon normalCouponType = couponRepository.save(Coupon.builder()
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000)
-                .originalQuantity(100)
-                .remainingQuantity(90)
                 .dueDate(LocalDate.parse("2026-12-31"))
-                .build();
-        this.newCoupon = couponRepository.save(coupon);
+                .build());
 
-        Coupon expiredCoupon = Coupon.builder()
+        Coupon expiredCouponType = couponRepository.save(Coupon.builder()
                 .couponName("만료된 쿠폰")
                 .discountAmount(1000)
-                .originalQuantity(100)
-                .remainingQuantity(90)
                 .dueDate(LocalDate.now().minusDays(1))
-                .build();
-        this.expired = couponRepository.save(expiredCoupon);
+                .build());
 
-        IssuedCoupon issuedCoupon = IssuedCoupon.builder()
-                .userId(1L)
-                .coupon(coupon)
-                .couponStatus(CouponStatusType.NEW)
-                .issuedAt(LocalDateTime.now())
-                .build();
-        this.couponFor1 = issuedCouponRepository.save(issuedCoupon);
-
-        IssuedCoupon expiredIssuedCoupon = IssuedCoupon.builder()
-                .userId(3L)
-                .coupon(expiredCoupon)
-                .couponStatus(CouponStatusType.NEW)
-                .issuedAt(LocalDateTime.now().minusDays(10))
-                .build();
-        this.couponFor3 = issuedCouponRepository.save(expiredIssuedCoupon);
-
-        Coupon usedCoupon = Coupon.builder()
+        Coupon usedCouponType = couponRepository.save(Coupon.builder()
                 .couponName("사용된 쿠폰")
                 .discountAmount(1000)
-                .originalQuantity(100)
-                .remainingQuantity(90)
                 .dueDate(LocalDate.now().plusDays(7))
-                .build();
-        this.used = couponRepository.save(usedCoupon);
+                .build());
 
-        IssuedCoupon usedIssuedCoupon = IssuedCoupon.builder()
-                .userId(4L)
-                .coupon(usedCoupon)
-                .couponStatus(CouponStatusType.USED)
-                .usedAt(LocalDateTime.now().minusDays(1))
-                .build();
-        this.couponFor4 = issuedCouponRepository.save(usedIssuedCoupon);
-
-        Balance balance = Balance.builder()
+        // 발급된 쿠폰 설정
+        normalCoupon = issuedCouponRepository.save(IssuedCoupon.builder()
                 .userId(1L)
-                .balance(50000)
-                .build();
-        balanceRepository.save(balance);
+                .coupon(normalCouponType)
+                .couponStatus(CouponStatusType.NEW)
+                .build());
 
-        Balance balance2 = Balance.builder()
-                .userId(2L)
-                .balance(10000)
-                .build();
-        balanceRepository.save(balance2);
+        expiredCoupon = issuedCouponRepository.save(IssuedCoupon.builder()
+                .userId(3L)
+                .coupon(expiredCouponType)
+                .couponStatus(CouponStatusType.NEW)
+                .build());
+
+        usedCoupon = issuedCouponRepository.save(IssuedCoupon.builder()
+                .userId(4L)
+                .coupon(usedCouponType)
+                .couponStatus(CouponStatusType.USED)
+                .build());
+
     }
 
 
@@ -230,7 +196,7 @@ class OrderControllerIntegrationTest {
         OrderRequest orderRequest = OrderRequest.builder()
                 .userId(userId)
                 .items(List.of(orderItemRequest))
-                .couponId(couponFor1.getId())
+                .couponId(normalCoupon.getId())
                 .build();
 
         // when
@@ -308,6 +274,7 @@ class OrderControllerIntegrationTest {
         assertThat(savedOrders).isEmpty();
     }
 
+
     @Test
     @DisplayName("주문 생성 API - 존재하지 않는 쿠폰으로 주문 시도 시 실패한다.")
     void createOrder_Invalid_Coupon() throws Exception {
@@ -360,7 +327,7 @@ class OrderControllerIntegrationTest {
         OrderRequest orderRequest = OrderRequest.builder()
                 .userId(userId)
                 .items(List.of(orderItemRequest))
-                .couponId(couponFor3.getId())
+                .couponId(expiredCoupon.getId())
                 .build();
 
         // when
@@ -380,6 +347,7 @@ class OrderControllerIntegrationTest {
 
     }
 
+
     @Test
     @DisplayName("주문 생성 API - 이미 사용된 쿠폰으로 주문 시도 시 실패한다.")
     void createOrder_UsedCoupon() throws Exception {
@@ -396,7 +364,7 @@ class OrderControllerIntegrationTest {
         OrderRequest orderRequest = OrderRequest.builder()
                 .userId(userId)
                 .items(List.of(orderItemRequest))
-                .couponId(couponFor4.getId())
+                .couponId(usedCoupon.getId())
                 .build();
 
         // when
@@ -414,88 +382,6 @@ class OrderControllerIntegrationTest {
 
         assertThat(orderRepository.findAll()).isEmpty();
     }
-
-//    @Test
-//    @DisplayName("결제 요청 API - 동시성 테스트. 비관적 락을 통해 재고 차감 시 정확한 재고를 관리한다.")
-//    void stockDeduction_Concurrently() throws Exception {
-//        // given
-//        final int STOCK_QUANTITY = 4;
-//
-//        Product product = createAndSaveProduct();
-//        Stock stock = Stock.builder()
-//                .product(product)
-//                .originStock(STOCK_QUANTITY)
-//                .remainingStock(STOCK_QUANTITY)
-//                .build();
-//        stockRepository.save(stock);
-//
-//        CountDownLatch firstTransactionStarted = new CountDownLatch(1);
-//        CountDownLatch lockAcquiredLatch = new CountDownLatch(1);
-//        CountDownLatch secondTransactionComplete = new CountDownLatch(1);
-//
-//        AtomicReference<LocalDateTime> firstLockTime = new AtomicReference<>();
-//        AtomicReference<LocalDateTime> secondLockTime = new AtomicReference<>();
-//
-//        // 첫 번째 트랜잭션
-//        TransactionTemplate transactionTemplate = new TransactionTemplate(transactionManager);
-//
-//        Thread firstThread = new Thread(() -> {
-//            transactionTemplate.execute(status -> {
-//                try {
-//                    firstTransactionStarted.countDown();
-//
-//                    Stock lockedStock = stockRepository.getStockWithLock(product.getId());
-//                    firstLockTime.set(LocalDateTime.now());
-//
-//                    lockAcquiredLatch.countDown();
-//                    Thread.sleep(3000); // 3초 대기
-//
-//                    lockedStock.deductStock(2);
-//                    stockRepository.save(lockedStock);
-//
-//                    return null;
-//                } catch (InterruptedException e) {
-//                    throw new RuntimeException(e);
-//                }
-//            });
-//        });
-//
-//        // 두 번째 트랜잭션
-//        Thread secondThread = new Thread(() -> {
-//            try {
-//                firstTransactionStarted.await(); // 첫 번째 트랜잭션이 시작될 때까지 대기
-//                lockAcquiredLatch.await(); // 첫 번째 트랜잭션이 락을 획득할 때까지 대기
-//
-//                transactionTemplate.execute(status -> {
-//                    Stock lockedStock = stockRepository.getStockWithLock(product.getId());
-//                    secondLockTime.set(LocalDateTime.now());
-//                    lockedStock.deductStock(2);
-//                    stockRepository.save(lockedStock);
-//
-//                    secondTransactionComplete.countDown();
-//                    return null;
-//                });
-//            } catch (InterruptedException e) {
-//                throw new RuntimeException(e);
-//            }
-//        });
-//
-//        // 스레드 실행
-//        firstThread.start();
-//        secondThread.start();
-//
-//        // 모든 트랜잭션 완료 대기
-//        boolean completed = secondTransactionComplete.await(10, TimeUnit.SECONDS);
-//        assertThat(completed).isTrue();
-//
-//        // then
-//        // 1. 락 획득 시점 검증
-//        Duration between = Duration.between(firstLockTime.get(), secondLockTime.get());
-//        assertThat(between.toMillis()).isGreaterThanOrEqualTo(2900); // 최소 3초 대기 시간 검증
-//
-//        // 2. 최종 재고 상태 검증
-//        Stock updatedStock = stockRepository.findById(stock.getId()).orElseThrow();
-//        assertThat(updatedStock.getRemainingStock()).isEqualTo(0); // 4개 재고가 2개씩 정확히 차감됨
-//    }
-
 }
+
+

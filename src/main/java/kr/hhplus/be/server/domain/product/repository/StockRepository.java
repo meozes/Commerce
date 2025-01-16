@@ -16,7 +16,10 @@ public interface StockRepository {
     Stock getStock(Long productId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
-    @QueryHints({@QueryHint(name = "javax.persistence.lock.timeout", value = "3000")})
+    @QueryHints({
+            @QueryHint(name = "javax.persistence.lock.timeout", value = "5000"),
+            @QueryHint(name = "jakarta.persistence.lock.scope", value = "EXTENDED")
+    })
     @Query("select s from Stock s where s.product.id = :productId")
     Optional<Stock> getStockWithLock(@Param("productId") Long productId);
 
@@ -24,7 +27,6 @@ public interface StockRepository {
 
     Stock save(Stock stock);
 
-    void deleteAll();
-
     Optional<Stock> findById(Long id);
+
 }
