@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.domain.balance.exception.NotEnoughBalanceException;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
@@ -21,6 +22,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -31,23 +33,47 @@ public class PaymentFacade {
     private final PaymentService paymentService;
     private final BalanceService balanceService;
     private final StockService stockService;
+    private final CouponService couponService;
     private final OrderValidator orderValidator;
     private final OrderEventSender orderEventSender;
 
     @Transactional
     public PaymentInfo createPayment(PaymentCommand command) {
+
+        log.info("[결제 프로세스 시작] orderId={}, userId={}, amount={}",
+                command.getOrderId(),
+                command.getUserId(),
+                command.getAmount());
+
         // 1. 주문 조회
         Order order = orderValidator.validateOrder(orderFindService.getOrder(command.getOrderId()), command);
         List<OrderItem> items = orderFindService.getOrderItems(order.getId());
+        log.info("[주문 조회 완료] orderId={}, orderStatus={}, orderItems={}",
+                order.getId(),
+                order.getOrderStatus(),
+                items.stream()
+                        .map(item -> String.format("상품ID:%d, 수량:%d", item.getProductId(), item.getQuantity()))
+                        .collect(Collectors.toList()));
 
         try {
             // 2. 잔고 조회, 차감
             balanceService.deductBalance(command.getUserId(), command.getAmount());
         } catch (NotEnoughBalanceException e) {
-            // 3. 실패 시 재고 복구, 결제 실패 처리
+            log.warn("[결제 실패 - 잔액 부족] orderId={}, userId={}, requestAmount={}",
+                    command.getOrderId(),
+                    command.getUserId(),
+                    command.getAmount());
+
+            // 3-1. 실패 시 재고 복구, 쿠폰 복구, 결제 실패 처리
             stockService.restoreStock(items);
+
+            // 3-2. 쿠폰 복구 (수량 증가, 상태 되돌리기)
+            couponService.revertRemainingQuantity(order.getId(), command.getUserId());
+
+            // 3-3. 결제 실패 처리
             orderControlService.cancelOrder(order);
             completeFailedPayment(command);
+
             throw new IllegalStateException(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
         }
 
@@ -56,6 +82,11 @@ public class PaymentFacade {
 
         // 5. 결제 완료
         Payment completedPayment = paymentService.completePayment(command, order);
+        log.info("[결제 완료] orderId={}, userId={}, amount={}, paymentId={}",
+                order.getId(),
+                command.getUserId(),
+                command.getAmount(),
+                completedPayment.getId());
 
         // 6. 외부 데이터 플랫폼으로 주문 정보 전송
         try {
@@ -63,6 +94,7 @@ public class PaymentFacade {
         } catch (RuntimeException | InterruptedException e) {
             log.error(ErrorCode.ORDER_SYNC_FAILED.getMessage(), e);
         }
+
         return PaymentInfo.from(completedPayment);
     }
 

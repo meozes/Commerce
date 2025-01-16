@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.common;
+package kr.hhplus.be.server.common.filter;
 
 import com.google.common.cache.CacheBuilder;
 import com.google.common.cache.CacheLoader;

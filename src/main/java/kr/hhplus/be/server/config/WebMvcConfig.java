@@ -1,6 +1,6 @@
-package kr.hhplus.be.server.interfaces.common.config;
+package kr.hhplus.be.server.config;
 
-import kr.hhplus.be.server.interfaces.common.interceptor.ApiLoggingInterceptor;
+import kr.hhplus.be.server.common.interceptor.ApiLoggingInterceptor;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.InterceptorRegistry;

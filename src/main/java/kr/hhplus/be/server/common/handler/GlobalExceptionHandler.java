@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.common;
+package kr.hhplus.be.server.common.handler;
 
 import kr.hhplus.be.server.interfaces.common.response.ApiResponse;
 import org.springframework.http.HttpStatus;

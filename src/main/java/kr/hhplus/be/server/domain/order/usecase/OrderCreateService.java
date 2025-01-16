@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.domain.order.usecase;
 
 import jakarta.transaction.Transactional;
+import kr.hhplus.be.server.common.aop.annotation.Monitored;
+import kr.hhplus.be.server.common.aop.annotation.Monitoring;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
@@ -10,11 +12,13 @@ import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import kr.hhplus.be.server.domain.order.type.OrderStatusType;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class OrderCreateService {
@@ -25,8 +29,18 @@ public class OrderCreateService {
     /**
      * 주문 생성하기
      */
+    @Monitored
+//    @Monitoring
     @Transactional
     public OrderInfo createOrder(OrderCommand command, Integer originalAmount, Integer discountAmount, Integer finalAmount, IssuedCoupon issuedCoupon) {
+
+        log.info("[주문 생성 시작] userId={}, originalAmount={}, discountAmount={}, finalAmount={}, hasCoupon={}",
+                command.getUserId(),
+                originalAmount,
+                discountAmount,
+                finalAmount,
+                issuedCoupon != null);
+
         Order order = Order.builder()
                 .userId(command.getUserId())
                 .originalAmount(originalAmount)
@@ -51,6 +65,16 @@ public class OrderCreateService {
         if (issuedCoupon != null){
             issuedCoupon.assignOrderToCoupon(savedOrder);
         }
+
+        log.info("[주문 생성 완료] orderId={}, userId={}, orderItems={}, originalAmount={}, discountAmount={}, finalAmount={}",
+                savedOrder.getId(),
+                command.getUserId(),
+                orderItems.stream()
+                        .map(item -> String.format("상품ID:%d, 수량:%d", item.getProductId(), item.getQuantity()))
+                        .collect(Collectors.toList()),
+                originalAmount,
+                discountAmount,
+                finalAmount);
 
         return OrderInfo.builder()
                 .order(savedOrder)
