@@ -88,25 +88,17 @@ public class CouponControlService {
     }
 
     /**
-     * 쿠폰 수량 복구하기
+     * 쿠폰 상태 복구하기
      */
     @Monitored
     @Transactional
-    public void revertRemainingQuantity(Long orderId, Long userId) {
+    public void revertCouponStatus(Long orderId, Long userId) {
 
-        couponRepository.getCouponWithLock(orderId, userId)
-                .ifPresent(
-                        coupon -> {
-                            coupon.revertRemainingQuantity();
-                            couponRepository.save(coupon);
-
-                            IssuedCoupon issuedCoupon = issuedCouponRepository.getOrderIssuedCoupon(orderId, userId)
-                                    .orElseThrow(() -> new NoSuchElementException(ErrorCode.COUPON_NOT_FOUND.getMessage()));
+        issuedCouponRepository.getOrderIssuedCoupon(orderId, userId)
+                        .ifPresent(issuedCoupon -> {
                             issuedCoupon.revert();
                             issuedCouponRepository.save(issuedCoupon);
-
-                            log.info("[쿠폰 복구 완료] couponId={}, remainingCouponQuantity={}" , coupon.getId(), coupon.getRemainingQuantity());
+                            log.info("[쿠폰 상태 복구 완료] couponId={}", issuedCoupon.getId());
                         });
-
     }
 }

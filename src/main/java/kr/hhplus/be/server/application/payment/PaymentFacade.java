@@ -74,7 +74,7 @@ public class PaymentFacade {
             stockService.restoreStock(items);
 
             // 3-2. 쿠폰 사용 시 쿠폰 복구
-            couponControlService.revertRemainingQuantity(order.getId(), command.getUserId());
+            couponControlService.revertCouponStatus(order.getId(), command.getUserId());
 
             // 3-3. 결제 실패 처리
             orderControlService.cancelOrder(order);

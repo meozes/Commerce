@@ -37,8 +37,4 @@ public class Coupon extends BaseTimeEntity {
         }
         this.remainingQuantity--;
     }
-
-    public void revertRemainingQuantity() {
-        this.remainingQuantity++;
-    }
 }
