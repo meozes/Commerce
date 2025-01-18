@@ -100,7 +100,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     @DisplayName("상품 단건 조회 API - 상품 단건 조회 성공한다.")
-    void getProduct_success() throws Exception {
+    void getProduct_Success() throws Exception {
         // given
         Product savedProduct = productRepository.findAll().get(0);
         Stock savedStock = stockRepository.getStock(savedProduct.getId());
@@ -122,7 +122,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     @DisplayName("상품 단건 조회 API - 존재하지 않는 상품 조회시 예외 발생한다.")
-    void getProduct_notFound() throws Exception {
+    void getProduct_NotFound() throws Exception {
         // when
         ResultActions result = mockMvc.perform(
                 MockMvcRequestBuilders
@@ -133,14 +133,14 @@ class ProductControllerIntegrationTest {
         // then
         result.andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value("NOT_FOUND"))
-                .andExpect(jsonPath("$.message").value("해당 상품이 존재하지 않습니다."))
+                .andExpect(jsonPath("$.message").value("상품이 존재하지 않습니다."))
                 .andExpect(jsonPath("$.data").isEmpty())
                 .andExpect(jsonPath("$.code").value(404));
     }
 
     @Test
     @DisplayName("상품 단건 조회 API - 존재하지 않는 상품 조회시 예외 발생한다.")
-    void getProduct_invalidId() throws Exception {
+    void getProduct_InvalidId() throws Exception {
         // when
         ResultActions result = mockMvc.perform(
                 MockMvcRequestBuilders
@@ -180,7 +180,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     @DisplayName("인기 상품 조회 API - 3일간 인기 상품 5개 조회 성공한다.")
-    void getTop5Products_success() throws Exception {
+    void getTop5Products_Success() throws Exception {
         // given
         Order order = Order.builder()
                 .userId(1L)
@@ -267,7 +267,7 @@ class ProductControllerIntegrationTest {
 
     @Test
     @DisplayName("주문 데이터가 없을 경우 빈 리스트 반환")
-    void getTop5Products_empty() throws Exception {
+    void getTop5Products_Empty() throws Exception {
         // when
         ResultActions result = mockMvc.perform(
                 MockMvcRequestBuilders

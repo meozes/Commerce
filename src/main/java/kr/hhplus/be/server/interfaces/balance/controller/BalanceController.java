@@ -11,7 +11,7 @@ import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.interfaces.balance.request.ChargeRequest;
 import kr.hhplus.be.server.interfaces.balance.response.BalanceResponse;
 import kr.hhplus.be.server.interfaces.balance.response.ChargeResponse;
-import kr.hhplus.be.server.interfaces.common.ApiResponse;
+import kr.hhplus.be.server.interfaces.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

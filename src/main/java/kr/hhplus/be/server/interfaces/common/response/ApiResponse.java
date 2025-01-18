@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.interfaces.common;
+package kr.hhplus.be.server.interfaces.common.response;
 
 
 import lombok.Getter;
@@ -16,6 +16,10 @@ public class ApiResponse<T> {
         this.status = status;
         this.message = message;
         this.data = data;
+    }
+
+    public static <T> ApiResponse<T> of(HttpStatus httpStatus, String message) {
+        return new ApiResponse<>(httpStatus, message, null);
     }
 
     public static <T> ApiResponse<T> of(HttpStatus httpStatus, String message, T data) {

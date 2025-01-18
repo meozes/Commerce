@@ -5,6 +5,7 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.*;
 
 import java.time.LocalDate;
@@ -32,7 +33,7 @@ public class Coupon extends BaseTimeEntity {
 
     public void decreaseRemainingQuantity() {
         if (this.remainingQuantity <= 0) {
-            throw new IllegalArgumentException("쿠폰이 모두 소진되었습니다. id=" + this.id);
+            throw new IllegalStateException(ErrorCode.COUPON_OUT_OF_STOCK.getMessage());
         }
         this.remainingQuantity--;
     }

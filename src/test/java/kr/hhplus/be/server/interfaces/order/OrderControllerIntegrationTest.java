@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.interfaces.order;
 
-import kr.hhplus.be.server.domain.balance.entity.Balance;
 import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
@@ -8,7 +7,6 @@ import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
 import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
-import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
@@ -38,8 +36,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.util.List;
+
 
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.hamcrest.Matchers.containsString;
@@ -84,19 +82,11 @@ class OrderControllerIntegrationTest {
     @Autowired
     private ProductService productService;
 
-    @Autowired
-    private CouponService couponService;
-
     private Product cookie;
     private Product milk;
-    private Stock cookieStock;
-    private Stock milkStock;
-    private Coupon newCoupon;
-    private Coupon expired;
-    private Coupon used;
-    private IssuedCoupon couponFor1;  // 새로운 쿠폰
-    private IssuedCoupon couponFor3;  // 만료된 쿠폰
-    private IssuedCoupon couponFor4;  // 사용된 쿠폰
+    private IssuedCoupon normalCoupon;
+    private IssuedCoupon expiredCoupon;
+    private IssuedCoupon usedCoupon;
 
 
     @Container
@@ -123,103 +113,76 @@ class OrderControllerIntegrationTest {
     }
 
 
-
     @BeforeEach
     void setUp() {
-        Product product = Product.builder()
+        // 상품 설정
+        cookie = productRepository.save(Product.builder()
                 .productName("쿠키")
                 .price(10000)
-                .build();
-        this.cookie = productRepository.save(product);
+                .build());
 
-        Product product2 = Product.builder()
+        milk = productRepository.save(Product.builder()
                 .productName("비싼 우유")
                 .price(50000)
-                .build();
-        this.milk = productRepository.save(product2);
+                .build());
 
-        Stock stock = Stock.builder()
-                .product(product)
+        // 재고 설정
+        stockRepository.save(Stock.builder()
+                .product(cookie)
                 .originStock(100)
                 .remainingStock(100)
-                .build();
-        this.cookieStock = stockRepository.save(stock);
+                .build());
 
-        Stock stock2 = Stock.builder()
-                .product(product2)
+        stockRepository.save(Stock.builder()
+                .product(milk)
                 .originStock(5)
                 .remainingStock(5)
-                .build();
-        this.milkStock = stockRepository.save(stock2);
+                .build());
 
-        Coupon coupon = Coupon.builder()
+        // 쿠폰 설정
+        Coupon normalCouponType = couponRepository.save(Coupon.builder()
                 .couponName("1000원 할인 쿠폰")
                 .discountAmount(1000)
-                .originalQuantity(100)
-                .remainingQuantity(90)
                 .dueDate(LocalDate.parse("2026-12-31"))
-                .build();
-        this.newCoupon = couponRepository.save(coupon);
+                .build());
 
-        Coupon expiredCoupon = Coupon.builder()
+        Coupon expiredCouponType = couponRepository.save(Coupon.builder()
                 .couponName("만료된 쿠폰")
                 .discountAmount(1000)
-                .originalQuantity(100)
-                .remainingQuantity(90)
                 .dueDate(LocalDate.now().minusDays(1))
-                .build();
-        this.expired = couponRepository.save(expiredCoupon);
+                .build());
 
-        IssuedCoupon issuedCoupon = IssuedCoupon.builder()
-                .userId(1L)
-                .coupon(coupon)
-                .couponStatus(CouponStatusType.NEW)
-                .issuedAt(LocalDateTime.now())
-                .build();
-        this.couponFor1 = issuedCouponRepository.save(issuedCoupon);
-
-        IssuedCoupon expiredIssuedCoupon = IssuedCoupon.builder()
-                .userId(3L)
-                .coupon(expiredCoupon)
-                .couponStatus(CouponStatusType.NEW)
-                .issuedAt(LocalDateTime.now().minusDays(10))
-                .build();
-        this.couponFor3 = issuedCouponRepository.save(expiredIssuedCoupon);
-
-        Coupon usedCoupon = Coupon.builder()
+        Coupon usedCouponType = couponRepository.save(Coupon.builder()
                 .couponName("사용된 쿠폰")
                 .discountAmount(1000)
-                .originalQuantity(100)
-                .remainingQuantity(90)
                 .dueDate(LocalDate.now().plusDays(7))
-                .build();
-        this.used = couponRepository.save(usedCoupon);
+                .build());
 
-        IssuedCoupon usedIssuedCoupon = IssuedCoupon.builder()
-                .userId(4L)
-                .coupon(usedCoupon)
-                .couponStatus(CouponStatusType.USED)
-                .usedAt(LocalDateTime.now().minusDays(1))
-                .build();
-        this.couponFor4 = issuedCouponRepository.save(usedIssuedCoupon);
-
-        Balance balance = Balance.builder()
+        // 발급된 쿠폰 설정
+        normalCoupon = issuedCouponRepository.save(IssuedCoupon.builder()
                 .userId(1L)
-                .balance(50000)
-                .build();
-        balanceRepository.save(balance);
+                .coupon(normalCouponType)
+                .couponStatus(CouponStatusType.NEW)
+                .build());
 
-        Balance balance2 = Balance.builder()
-                .userId(2L)
-                .balance(10000)
-                .build();
-        balanceRepository.save(balance2);
+        expiredCoupon = issuedCouponRepository.save(IssuedCoupon.builder()
+                .userId(3L)
+                .coupon(expiredCouponType)
+                .couponStatus(CouponStatusType.NEW)
+                .build());
+
+        usedCoupon = issuedCouponRepository.save(IssuedCoupon.builder()
+                .userId(4L)
+                .coupon(usedCouponType)
+                .couponStatus(CouponStatusType.USED)
+                .build());
+
     }
 
 
     @Test
     @DisplayName("주문 생성 API - 주문 생성이 성공한다.")
-    void createOrderSuccess() throws Exception {
+    void createOrder_Success() throws Exception {
         // given
         Long userId = 1L;
 
@@ -233,7 +196,7 @@ class OrderControllerIntegrationTest {
         OrderRequest orderRequest = OrderRequest.builder()
                 .userId(userId)
                 .items(List.of(orderItemRequest))
-                .couponId(couponFor1.getId())
+                .couponId(normalCoupon.getId())
                 .build();
 
         // when
@@ -278,7 +241,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     @DisplayName("주문 생성 API - 재고 부족 시 주문이 실패한다.")
-    void createOrderFailWhenInsufficientStock() throws Exception {
+    void createOrder_Insufficient_Stock() throws Exception {
         // given
         Long userId = 2L;
 
@@ -303,7 +266,7 @@ class OrderControllerIntegrationTest {
         );
 
         // then
-        result.andExpect(status().isConflict())
+        result.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("재고가 부족합니다")))
                 .andDo(print());
 
@@ -311,9 +274,10 @@ class OrderControllerIntegrationTest {
         assertThat(savedOrders).isEmpty();
     }
 
+
     @Test
     @DisplayName("주문 생성 API - 존재하지 않는 쿠폰으로 주문 시도 시 실패한다.")
-    void createOrderFailWithInvalidCoupon() throws Exception {
+    void createOrder_Invalid_Coupon() throws Exception {
         // given
         Long userId = 1L;
         Long invalidCouponId = 999L;
@@ -341,7 +305,7 @@ class OrderControllerIntegrationTest {
 
         // then
         result.andExpect(status().isNotFound())
-                .andExpect(jsonPath("$.message").value("해당 쿠폰이 존재하지 않습니다."))
+                .andExpect(jsonPath("$.message").value("해당 쿠폰을 발급받은 내역이 없습니다."))
                 .andDo(print());
 
         assertThat(orderRepository.findAll()).isEmpty();
@@ -349,7 +313,7 @@ class OrderControllerIntegrationTest {
 
     @Test
     @DisplayName("주문 생성 API - 만료된 쿠폰으로 주문 시도 시 실패한다.")
-    void createOrderFailWithExpiredCoupon() throws Exception {
+    void createOrder_Expired_Coupon() throws Exception {
         // given
         Long userId = 3L;
 
@@ -363,7 +327,7 @@ class OrderControllerIntegrationTest {
         OrderRequest orderRequest = OrderRequest.builder()
                 .userId(userId)
                 .items(List.of(orderItemRequest))
-                .couponId(couponFor3.getId())
+                .couponId(expiredCoupon.getId())
                 .build();
 
         // when
@@ -375,7 +339,7 @@ class OrderControllerIntegrationTest {
         );
 
         // then
-        result.andExpect(status().isConflict())
+        result.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("만료된 쿠폰입니다")))
                 .andDo(print());
 
@@ -383,9 +347,10 @@ class OrderControllerIntegrationTest {
 
     }
 
+
     @Test
     @DisplayName("주문 생성 API - 이미 사용된 쿠폰으로 주문 시도 시 실패한다.")
-    void createOrderFailWithUsedCoupon() throws Exception {
+    void createOrder_UsedCoupon() throws Exception {
         // given
         Long userId = 4L;
 
@@ -399,7 +364,7 @@ class OrderControllerIntegrationTest {
         OrderRequest orderRequest = OrderRequest.builder()
                 .userId(userId)
                 .items(List.of(orderItemRequest))
-                .couponId(couponFor4.getId())
+                .couponId(usedCoupon.getId())
                 .build();
 
         // when
@@ -411,13 +376,12 @@ class OrderControllerIntegrationTest {
         );
 
         // then
-        result.andExpect(status().isConflict())
+        result.andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.message").value(containsString("이미 사용된 쿠폰입니다")))
                 .andDo(print());
 
         assertThat(orderRepository.findAll()).isEmpty();
     }
-
-    //TODO : 주문 동시성 테스트(재고관련)
-
 }
+
+

@@ -3,9 +3,8 @@ package kr.hhplus.be.server.domain.balance.entity;
 import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.balance.exception.NotEnoughBalanceException;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
-import kr.hhplus.be.server.domain.payment.exception.InsufficientBalanceException;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.*;
-import org.springframework.data.annotation.Version;
 
 @Entity
 @Getter
@@ -34,21 +33,21 @@ public class Balance extends BaseTimeEntity {
         this.balance -= amount;
     }
 
-    private void validateChargeAmount(Integer amount) {
-        if (amount <= 0) {
-            throw new IllegalArgumentException("충전 금액은 100원 보다 커야 합니다.");
+    public void validateChargeAmount(Integer amount) {
+        if (amount < 100) {
+            throw new IllegalArgumentException(ErrorCode.INVALID_AMOUNT_INPUT.getMessage());
         }
     }
 
-    private void validateDeductAmount(Integer amount) {
+    public void validateDeductAmount(Integer amount) {
         if (amount <= 0) {
-            throw new IllegalArgumentException("결제 금액은 0보다 커야 합니다.");
+            throw new IllegalArgumentException(ErrorCode.INVALID_PAYMENT_AMOUNT.getMessage());
         }
     }
 
-    private void validateSufficientBalance(Integer amount) {
+    public void validateSufficientBalance(Integer amount) {
         if (this.balance < amount) {
-            throw new NotEnoughBalanceException("잔액이 부족합니다.");
+            throw new NotEnoughBalanceException(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
         }
     }
 }

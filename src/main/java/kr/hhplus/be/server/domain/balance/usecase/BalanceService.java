@@ -1,7 +1,10 @@
 package kr.hhplus.be.server.domain.balance.usecase;
 
+import kr.hhplus.be.server.common.aop.annotation.Monitored;
+import kr.hhplus.be.server.common.aop.annotation.Monitoring;
 import kr.hhplus.be.server.domain.balance.validation.AmountValidator;
 import kr.hhplus.be.server.domain.balance.validation.UserIdValidator;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
@@ -14,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class BalanceService {
@@ -36,54 +40,74 @@ public class BalanceService {
     /**
      * 잔액 충전하기
      */
+    @Monitored
+    @Monitoring
     @Transactional
     public BalanceInfo chargeBalance(ChargeCommand command) {
+
+        log.info("[잔액 충전 시작] userId={}, chargeAmount={}", command.getUserId(), command.getChargeAmount());
+
         userIdValidator.validate(command.getUserId());
         amountValidator.validateChargeAmount(command.getChargeAmount());
 
-        Balance balance = balanceRepository.getBalanceWithLock(command.getUserId());
-        if (balance == null) {
-            balance = createBalance(command.getUserId());
-        }
+        Balance balance = balanceRepository.getBalanceWithLock(command.getUserId())
+                .orElseGet(() -> createBalance(command.getUserId()));
 
         Integer beforeBalance = balance.getBalance();
         balance.charge(command.getChargeAmount());
-        balance = balanceRepository.save(balance);
+        Balance charged = balanceRepository.save(balance);
 
         historyRepository.saveHistory(
                 beforeBalance,
-                balance.getBalance(),
-                balance.getId(),
+                charged.getBalance(),
+                charged.getId(),
                 TransactionType.CHARGE,
                 command.getChargeAmount()
         );
-        return BalanceInfo.from(balance);
+
+        log.info("[잔액 충전 완료] userId={}, beforeBalance={}, afterBalance={}, chargeAmount={}",
+                command.getUserId(),
+                beforeBalance,
+                charged.getBalance(),
+                command.getChargeAmount());
+
+        return BalanceInfo.from(charged);
     }
 
     /**
-     * 금액 차감하기
+     * 잔고 차감하기
      */
+    @Monitored
+    @Monitoring
     @Transactional
     public BalanceInfo deductBalance(Long userId, Integer amount) {
+
+        log.info("[잔고 차감 시작] userId={}, deductAmount={}", userId, amount);
+
         userIdValidator.validate(userId);
         amountValidator.validateDeductAmount(amount);
 
-        Balance balance = balanceRepository.getBalanceWithLock(userId);
-        if (balance == null) {
-            balance = createBalance(userId);
-        }
+        Balance balance = balanceRepository.getBalanceWithLock(userId)
+                .orElseGet(() -> createBalance(userId));
 
         Integer beforeBalance = balance.getBalance();
         balance.deduct(amount);
-        balance = balanceRepository.save(balance);
+        Balance deducted = balanceRepository.save(balance);
 
         historyRepository.saveHistory(
                 beforeBalance,
-                balance.getBalance(),
-                balance.getId(),
+                deducted.getBalance(),
+                deducted.getId(),
                 TransactionType.USE,
                 amount
         );
+
+        log.info("[잔고 차감 완료] userId={}, beforeBalance={}, afterBalance={}, deductedAmount={}",
+                userId,
+                beforeBalance,
+                deducted.getBalance(),
+                amount);
+
         return BalanceInfo.from(balance);
     }
 

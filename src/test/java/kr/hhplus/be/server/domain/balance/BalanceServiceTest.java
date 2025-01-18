@@ -139,7 +139,7 @@ class BalanceServiceTest {
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateChargeAmount(chargeAmount);
-        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(balance);
+        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(Optional.ofNullable(balance));
         when(balanceRepository.save(any(Balance.class))).thenReturn(chargedBalance);
         when(historyRepository.saveHistory(1000, 11000, 1L, TransactionType.CHARGE, chargeAmount))
                 .thenReturn(history);
@@ -183,7 +183,7 @@ class BalanceServiceTest {
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateChargeAmount(chargeAmount);
-        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(null);
+        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(Optional.empty());
         when(balanceRepository.save(any(Balance.class))).thenReturn(newBalance, chargedBalance);
         when(historyRepository.saveHistory(0, 10000, 1L, TransactionType.CHARGE, chargeAmount))
                 .thenReturn(any(BalanceHistory.class));
@@ -252,7 +252,7 @@ class BalanceServiceTest {
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateDeductAmount(deductAmount);
-        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(balance);
+        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(Optional.ofNullable(balance));
         when(balanceRepository.save(any(Balance.class))).thenReturn(deductedBalance);
         when(historyRepository.saveHistory(1000, 500, 1L, TransactionType.USE, deductAmount))
                 .thenReturn(any(BalanceHistory.class));
@@ -287,7 +287,7 @@ class BalanceServiceTest {
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateDeductAmount(deductAmount);
-        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(null);
+        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(Optional.empty());
         when(balanceRepository.save(any(Balance.class))).thenReturn(newBalance);
 
         // then
@@ -318,7 +318,7 @@ class BalanceServiceTest {
         // when
         doNothing().when(userIdValidator).validate(userId);
         doNothing().when(amountValidator).validateDeductAmount(deductAmount);
-        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(balance);
+        when(balanceRepository.getBalanceWithLock(userId)).thenReturn(Optional.ofNullable(balance));
 
         // then
         assertThrows(NotEnoughBalanceException.class, () ->

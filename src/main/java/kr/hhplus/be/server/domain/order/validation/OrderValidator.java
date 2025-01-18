@@ -5,30 +5,33 @@ import kr.hhplus.be.server.domain.order.dto.OrderInfo;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.type.OrderStatusType;
 import kr.hhplus.be.server.domain.payment.dto.PaymentCommand;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.NoSuchElementException;
 
 @Service
 @RequiredArgsConstructor
 public class OrderValidator {
     public void validateOrder(OrderCommand command) {
         if (command.getUserId() < 0) {
-            throw new IllegalArgumentException("유효하지 않은 유저 ID 입니다.");
+            throw new IllegalArgumentException(ErrorCode.INVALID_USER_ID.getMessage());
         }
         if (command.getOrderItems() == null || command.getOrderItems().isEmpty()) {
-            throw new IllegalArgumentException("주문 상품 목록은 필수입니다.");
+            throw new IllegalArgumentException(ErrorCode.ORDER_ITEMS_REQUIRED.getMessage());
         }
     }
 
     public Order validateOrder(OrderInfo order, PaymentCommand command) {
         if (order == null) {
-            throw new IllegalArgumentException("주문이 존재하지 않습니다.");
+            throw new NoSuchElementException(ErrorCode.ORDER_ITEMS_REQUIRED.getMessage());
         }
         if (!order.getOrder().getOrderStatus().equals(OrderStatusType.PENDING)) {
-            throw new IllegalArgumentException("주문이 취소되었거나 처리 완료되었습니다.");
+            throw new IllegalStateException(ErrorCode.ORDER_ALREADY_COMPLETED.getMessage());
         }
         if (!order.getOrder().getFinalAmount().equals(command.getAmount())){
-            throw new IllegalArgumentException("결제 금액이 불일치합니다.");
+            throw new IllegalStateException(ErrorCode.PAYMENT_AMOUNT_MISMATCH.getMessage());
         }
         return order.getOrder();
     }

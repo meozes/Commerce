@@ -5,8 +5,9 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
-import kr.hhplus.be.server.domain.coupon.usecase.CouponService;
-import kr.hhplus.be.server.interfaces.common.ApiResponse;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponFindService;
+import kr.hhplus.be.server.interfaces.common.response.ApiResponse;
 import kr.hhplus.be.server.domain.coupon.dto.CouponSearch;
 import kr.hhplus.be.server.interfaces.coupon.response.CouponResponse;
 import lombok.RequiredArgsConstructor;
@@ -21,7 +22,8 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class CouponController {
 
-    private final CouponService couponService;
+    private final CouponFindService couponFindService;
+    private final CouponControlService couponControlService;
 
     @Operation(summary = "쿠폰 조회", description = "보유한 쿠폰을 조회합니다.")
     @GetMapping("/{userId}")
@@ -32,7 +34,7 @@ public class CouponController {
             @RequestParam(name = "size", defaultValue = "10") int size
     ) {
         CouponSearch couponSearch = CouponSearch.of(userId, page, size);
-        Page<CouponInfo> infos = couponService.getIssuedCoupons(couponSearch);
+        Page<CouponInfo> infos = couponFindService.getIssuedCoupons(couponSearch);
         Page<CouponResponse> response = infos.map(CouponResponse::from);
         return ApiResponse.ok(response);
     }
@@ -47,7 +49,7 @@ public class CouponController {
             @PathVariable("couponId") Long couponId
     ) {
         CouponCommand command = CouponCommand.of(userId, couponId);
-        CouponInfo info = couponService.issueCoupon(command);
+        CouponInfo info = couponControlService.issueCoupon(command);
         return ApiResponse.ok(CouponResponse.from(info));
     }
 }

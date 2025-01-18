@@ -8,12 +8,12 @@ import java.util.List;
 import java.util.Optional;
 
 public interface ProductRepository {
-   Optional<Product> getProduct(Long productId);
+    Optional<Product> getProduct(Long productId);
 
     Page<Product> getProducts(PageRequest pageRequest);
 
     Product save(Product product);
+
     List<Product> findAll();
 
-    void deleteAll();
 }

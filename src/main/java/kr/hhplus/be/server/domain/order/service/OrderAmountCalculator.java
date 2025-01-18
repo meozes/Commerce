@@ -15,10 +15,7 @@ public class OrderAmountCalculator {
      * 최종 주문 가격 계산하기(쿠폰은 정액 할인만 존재)
      */
     public OrderAmountInfo calculate(List<OrderItemCommand> orderItems, IssuedCoupon issuedCoupon) {
-        Integer discountAmount = 0;
-        if (issuedCoupon != null) {
-            discountAmount = issuedCoupon.getCoupon().getDiscountAmount();
-        }
+        Integer discountAmount = issuedCoupon != null ? issuedCoupon.getCoupon().getDiscountAmount() : 0;
 
         Integer originalAmount = orderItems.stream()
                 .mapToInt(item -> item.getPrice() * item.getQuantity())
