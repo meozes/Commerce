@@ -1,3 +1,6 @@
+#server:
+#  port: 8081  # 테스트용 포트
+
 spring:
   jpa:
     hibernate:
@@ -13,7 +16,14 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        jdbc:
+          batch_size: 50
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 20
+      minimum-idle: 5
+
+rate:
+  limit:
+    enabled: false
