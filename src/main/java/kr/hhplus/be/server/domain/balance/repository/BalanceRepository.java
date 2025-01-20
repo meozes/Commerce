@@ -15,8 +15,8 @@ public interface BalanceRepository {
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({
-            @QueryHint(name = "javax.persistence.lock.timeout", value = "3000"),
-            @QueryHint(name = "javax.persistence.query.timeout", value = "3000")
+            @QueryHint(name = "jakarta.persistence.lock.timeout", value = "3000"),
+            @QueryHint(name = "jakarta.persistence.query.timeout", value = "3000")
     })
     @Query("select b from Balance b where b.userId = :userId")
     Optional<Balance> getBalanceWithLock(@Param("userId") Long userId);
