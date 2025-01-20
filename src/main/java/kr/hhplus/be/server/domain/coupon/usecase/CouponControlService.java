@@ -13,6 +13,7 @@ import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -54,36 +55,59 @@ public class CouponControlService {
                 .ifPresent(coupon -> {
                     throw new IllegalStateException(ErrorCode.COUPON_ALREADY_ISSUED.getMessage());
                 });
+        log.info("[기존 발급 여부 확인 완료]");
 
         // 1. 쿠폰 수량 확인 (비관적 락)
-        Coupon coupon = couponRepository.getCouponWithLock(command.getCouponId())
-                .orElseThrow(() -> new NoSuchElementException(ErrorCode.INVALID_COUPON.getMessage()+ " id=" + command.getCouponId()));
-        couponValidator.validateCouponQuantity(coupon);
+        try {
+            log.info("[쿠폰 락 획득 시도 시작] couponId={}", command.getCouponId());
+            Coupon coupon = couponRepository.getCouponWithLock(command.getCouponId())
+                    .orElseThrow(() -> new NoSuchElementException(ErrorCode.INVALID_COUPON.getMessage()+ " id=" + command.getCouponId()));
+            log.info("[쿠폰 락 획득 성공] couponId={}", command.getCouponId());
+            try{
+                couponValidator.validateCouponQuantity(coupon);
+                log.info("[쿠폰 조회 완료] {}", coupon);
 
-        // 2. 쿠폰 잔량 감소
-        coupon.decreaseRemainingQuantity();
-        Coupon decreased = couponRepository.save(coupon);
+                // 2. 쿠폰 잔량 감소
+                coupon.decreaseRemainingQuantity();
+                Coupon decreased = couponRepository.save(coupon);
 
-        // 3. 발급 내역 저장
-        IssuedCoupon issuedCoupon = IssuedCoupon.builder()
-                .coupon(decreased)
-                .userId(command.getUserId())
-                .couponStatus(CouponStatusType.NEW)
-                .issuedAt(LocalDateTime.now())
-                .build();
-        IssuedCoupon issued = issuedCouponRepository.save(issuedCoupon);
+                // 3. 발급 내역 저장
+                IssuedCoupon issuedCoupon = IssuedCoupon.builder()
+                        .coupon(decreased)
+                        .userId(command.getUserId())
+                        .couponStatus(CouponStatusType.NEW)
+                        .issuedAt(LocalDateTime.now())
+                        .build();
+                IssuedCoupon issued = issuedCouponRepository.save(issuedCoupon);
 
-        log.info("[쿠폰 발급 완료] userId={}, couponId={}, issuedCouponId={}, beforeQuantity={}, remainingQuantity={}",
-                command.getUserId(),
-                command.getCouponId(),
-                issued.getId(),
-                coupon.getRemainingQuantity(),
-                decreased.getRemainingQuantity());
+                log.info("[쿠폰 발급 완료] userId={}, couponId={}, issuedCouponId={}, beforeQuantity={}, remainingQuantity={}",
+                        command.getUserId(),
+                        command.getCouponId(),
+                        issued.getId(),
+                        coupon.getRemainingQuantity(),
+                        decreased.getRemainingQuantity());
 
-        return CouponInfo.builder()
-                .coupon(coupon)
-                .issuedCoupon(issuedCoupon)
-                .build();
+                return CouponInfo.builder()
+                        .coupon(coupon)
+                        .issuedCoupon(issuedCoupon)
+                        .build();
+            } catch (Exception e) {
+                log.error("[쿠폰 발급 처리 중 오류 발생]: couponId={}, userId={}, error={}",
+                        command.getCouponId(), command.getUserId(), e.getMessage());
+                throw e;
+            }
+
+        } catch (PessimisticLockingFailureException e) {
+            log.warn("[쿠폰 락 획득 실패 (충돌)] couponId={}, userId={}", command.getCouponId(), command.getUserId());
+            throw new IllegalStateException("현재 다른 요청 처리중입니다. 잠시 후 다시 시도해주세요.");
+        } catch (Exception e) {
+            log.error("[예상치 못한 오류 발생] couponId={}, userId={}, error={}",
+                    command.getCouponId(), command.getUserId(), e.getMessage());
+            throw new IllegalStateException("쿠폰 발급 처리 중 오류가 발생했습니다.");
+        }
+
+
+
 
     }
 
@@ -95,10 +119,10 @@ public class CouponControlService {
     public void revertCouponStatus(Long orderId, Long userId) {
 
         issuedCouponRepository.getOrderIssuedCoupon(orderId, userId)
-                        .ifPresent(issuedCoupon -> {
-                            issuedCoupon.revert();
-                            issuedCouponRepository.save(issuedCoupon);
-                            log.info("[쿠폰 상태 복구 완료] couponId={}", issuedCoupon.getId());
-                        });
+                .ifPresent(issuedCoupon -> {
+                    issuedCoupon.revert();
+                    issuedCouponRepository.save(issuedCoupon);
+                    log.info("[쿠폰 상태 복구 완료] couponId={}", issuedCoupon.getId());
+                });
     }
 }
