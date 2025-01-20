@@ -15,8 +15,16 @@ public interface OrderRepositoryImpl extends JpaRepository<Order, Long>, OrderRe
         return findById(orderId);
     }
 
+//    @Override
+//    default Optional<Order> getOrderWithLock(Long orderId) {
+//        return findById(orderId);
+//    }
+
     @Override
     default Optional<Order> findById(Long id) {
         return Optional.of(getReferenceById(id));
     }
+
+//    @Override
+//    default Order getUserLatestOrder(Long userId)
 }

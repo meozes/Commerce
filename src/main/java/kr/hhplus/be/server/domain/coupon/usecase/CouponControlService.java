@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.coupon.usecase;
 
-import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
@@ -14,6 +13,8 @@ import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.NoSuchElementException;
@@ -91,7 +92,7 @@ public class CouponControlService {
      * 쿠폰 상태 복구하기
      */
     @Monitored
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void revertCouponStatus(Long orderId, Long userId) {
 
         issuedCouponRepository.getOrderIssuedCoupon(orderId, userId)
