@@ -11,7 +11,7 @@ import org.springframework.data.repository.query.Param;
 import java.util.Optional;
 
 public interface CouponRepository {
-    Optional<Coupon> getCoupon(Long id);
+    Optional<Coupon> getCoupon(Long couponId);
 
     Coupon save(Coupon coupon);
 
