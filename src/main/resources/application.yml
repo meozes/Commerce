@@ -38,7 +38,17 @@ rate:
 
 logging:
   level:
+    root: INFO
     kr.hhplus.be.server.common: DEBUG
+  file:
+    name: ./logs/application.log
+  logback:
+    rollingpolicy:
+      max-file-size: 10MB
+      max-history: 30
+      file-name-pattern: ./logs/application-%d{yyyy-MM-dd}.%i.log
+  pattern:
+    file: "%d{yyyy-MM-dd HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
 ---
 spring.config.activate.on-profile: local, test
 

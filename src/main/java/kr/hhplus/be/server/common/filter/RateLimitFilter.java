@@ -8,6 +8,7 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import com.google.common.cache.LoadingCache;
 import org.hibernate.sql.exec.ExecutionException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -22,6 +23,10 @@ public class RateLimitFilter implements Filter {
 
     // 허용되는 최대 요청 수
     private static final int MAX_REQUESTS_PER_MINUTE = 60;
+
+    // rate limit 설정을 주입받기 위한 값
+    @Value("${rate.limit.enabled:true}")  // 기본값은 true
+    private boolean rateLimitEnabled;
 
     public RateLimitFilter() {
         // 캐시 설정: 1분 후 만료
@@ -38,6 +43,13 @@ public class RateLimitFilter implements Filter {
     @Override
     public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
             throws IOException, ServletException, ServletException {
+
+        // rate limit이 비활성화되어 있다면 바로 다음 필터로 진행
+        if (!rateLimitEnabled) {
+            chain.doFilter(request, response);
+            return;
+        }
+
         HttpServletRequest httpRequest = (HttpServletRequest) request;
         HttpServletResponse httpResponse = (HttpServletResponse) response;
 
@@ -45,9 +57,8 @@ public class RateLimitFilter implements Filter {
         String clientIp = getClientIP(httpRequest);
 
         // 현재 요청 수 증가
-        int requests = 0;
         try {
-            requests = requestCountsPerIp.get(clientIp);
+            int requests = requestCountsPerIp.get(clientIp);
             requests++;
             requestCountsPerIp.put(clientIp, requests);
 
