@@ -104,8 +104,8 @@ public class CouponRedisLockIntegrationTest {
     }
 
     @Test
-    @DisplayName("쿠폰 발급 API - 동시성 테스트. 서로 다른 사용자가 동일한 쿠폰을 동시에 발급 요청하면 정상적으로 처리된다")
-    void issueCoupon_Concurrently() throws Exception {
+    @DisplayName("서로 다른 사용자가 동일한 쿠폰을 동시에 발급 요청 시 Redisson 락에 의해 제어되어 정상적으로 처리된다.")
+    void issue_Coupon_WithRLock() throws Exception {
         // given
         int numberOfThreads = 5;
         List<Long> userIds = Arrays.asList(5L, 6L, 7L, 8L, 9L);
@@ -190,8 +190,8 @@ public class CouponRedisLockIntegrationTest {
     }
 
     @Test
-    @DisplayName("쿠폰 발급 API - 동일 사용자가 동일 쿠폰을 동시에 여러 번 요청하면 한 번만 발급된다")
-    void issueCoupon_Concurrently_SameUser() throws Exception {
+    @DisplayName("동일 사용자가 동일 쿠폰을 동시에 여러 번 요청 시 한 번만 발급 성공한다.")
+    void issuedCoupon_BySameUser_WithRLock() throws Exception {
         // given
         int numberOfThreads = 3;
         Long userId = 10L;
