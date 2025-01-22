@@ -4,7 +4,12 @@ import kr.hhplus.be.server.common.aop.annotation.DistributedLock;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.common.aop.annotation.Monitoring;
 import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
+import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
+import kr.hhplus.be.server.domain.order.repository.OrderRepository;
+import kr.hhplus.be.server.domain.order.type.OrderStatusType;
+import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
+import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
@@ -12,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Comparator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
@@ -24,29 +30,38 @@ public class StockService {
 
     private final ProductService productService;
     private final StockRepository stockRepository;
+    private final OrderFindService orderFindService;
+    private final OrderControlService orderControlService;
+    private final OrderRepository orderRepository;
 
     /**
      * 재고 복구하기
      */
     @Monitored
     @Monitoring
-    @Transactional
-    public void restoreStock(List<OrderItem> orderItems) {
-        log.info("[재고 복구 시작] orderItems={}", orderItems);
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
+    public void restoreStock(Long orderId, List<OrderItem> orderItems) {
 
-        orderItems.forEach(item -> {
-                    Stock stock = stockRepository.getStockWithLock(item.getProductId())
-                                    .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_STOCK_NOT_FOUND.getMessage()));
-                    stock.restoreStock(item.getQuantity());
-                    stockRepository.save(stock);
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new NoSuchElementException(ErrorCode.ORDER_NOT_FOUND.getMessage()));
 
-            log.info("[재고 복구 완료] productId={}, restoredQuantity={}, remainingStock={}",
-                    item.getProductId(),
-                    item.getQuantity(),
-                    stock.getRemainingStock());
-        });
+        if (order.getOrderStatus().equals(OrderStatusType.PENDING)) {
+            log.info("[재고 복구 시작] orderItems={}", orderItems);
 
+            orderItems.forEach(item -> {
+                Stock stock = stockRepository.getStockWithLock(item.getProductId())
+                        .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_STOCK_NOT_FOUND.getMessage()));
+                stock.restoreStock(item.getQuantity());
+                stockRepository.save(stock);
 
+                log.info("[재고 복구 완료] orderId={}, productId={}, restoredQuantity={}, remainingStock={}",
+                        item.getOrder().getId(),
+                        item.getProductId(),
+                        item.getQuantity(),
+                        stock.getRemainingStock());
+            });
+        }
+        orderControlService.cancelOrder(orderItems.get(0).getOrder());
     }
 
     /**

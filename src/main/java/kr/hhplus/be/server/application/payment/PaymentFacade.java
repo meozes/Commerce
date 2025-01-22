@@ -70,15 +70,14 @@ public class PaymentFacade {
                     command.getUserId(),
                     command.getAmount());
 
-            // 3-1. 재고 복구
-            stockService.restoreStock(items);
+//            // 3-1. 주문 취소 처리
+//            orderControlService.cancelOrder(order);
 
-            // 3-2. 쿠폰 사용 시 쿠폰 복구
+            // 3-2. 재고 복구
+            stockService.restoreStock(order.getId(), items);
+
+            // 3-3. 쿠폰 사용 시 쿠폰 복구
             couponControlService.revertCouponStatus(order.getId(), command.getUserId());
-
-            // 3-3. 결제 실패 처리
-            orderControlService.cancelOrder(order);
-            completeFailedPayment(command);
 
             throw new IllegalStateException(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
         }
@@ -104,14 +103,5 @@ public class PaymentFacade {
         return PaymentInfo.from(completedPayment);
     }
 
-
-    public void completeFailedPayment(PaymentCommand command) {
-        PaymentInfo.builder()
-                .userId(command.getUserId())
-                .orderId(command.getOrderId())
-                .amount(command.getAmount())
-                .status(PaymentStatusType.FAILED)
-                .build();
-    }
 }
 
