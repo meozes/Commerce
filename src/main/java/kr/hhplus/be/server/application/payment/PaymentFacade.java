@@ -70,14 +70,8 @@ public class PaymentFacade {
                     command.getUserId(),
                     command.getAmount());
 
-//            // 3-1. 주문 취소 처리
-//            orderControlService.cancelOrder(order);
-
-            // 3-2. 재고 복구
-            stockService.restoreStock(order.getId(), items);
-
-            // 3-3. 쿠폰 사용 시 쿠폰 복구
-            couponControlService.revertCouponStatus(order.getId(), command.getUserId());
+            // 3-1. 재고 복구
+            stockService.restoreStock(order.getId(), items, command.getUserId());
 
             throw new IllegalStateException(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
         }

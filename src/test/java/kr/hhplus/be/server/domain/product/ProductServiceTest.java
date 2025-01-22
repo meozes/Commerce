@@ -90,7 +90,7 @@ class ProductServiceTest {
         Stock stock = new Stock(1L, product, 100, 30);
 
         when(productRepository.getProduct(productId)).thenReturn(Optional.of(product));
-        when(stockRepository.getStock(productId)).thenReturn(stock);
+        when(stockRepository.getStock(productId)).thenReturn(Optional.of(stock));
 
         // when
         ProductInfo result = productService.getProduct(productSearch);

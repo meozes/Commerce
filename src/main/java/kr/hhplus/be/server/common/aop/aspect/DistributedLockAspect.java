@@ -3,6 +3,7 @@ package kr.hhplus.be.server.common.aop.aspect;
 import kr.hhplus.be.server.common.lock.DistributedLock;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
+import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.aspectj.lang.ProceedingJoinPoint;
@@ -29,11 +30,14 @@ public class DistributedLockAspect {
             return handleCouponLock(joinPoint, (CouponCommand) args[0]);
         }
 
-        // OrderItemCommand List 처리
+
         if (args.length > 0 && args[0] instanceof List<?>) {
             List<?> items = (List<?>) args[0];
             if (!items.isEmpty() && items.get(0) instanceof OrderItemCommand) {
-                return handleOrderItemsLock(joinPoint, (List<OrderItemCommand>) items);
+                return handleDeductStock(joinPoint, (List<OrderItemCommand>) items);
+            }
+            else if(!items.isEmpty() && items.get(0) instanceof OrderItem) {
+                return handleRestoreStock(joinPoint, (List<OrderItem>) items);
             }
         }
 
@@ -54,10 +58,38 @@ public class DistributedLockAspect {
         }
     }
 
-    private Object handleOrderItemsLock(ProceedingJoinPoint joinPoint, List<OrderItemCommand> orderItems) throws Throwable {
+    private Object handleDeductStock(ProceedingJoinPoint joinPoint, List<OrderItemCommand> orderItems) throws Throwable {
         // 상품 ID 기준으로 정렬하여 교착 상태 방지
         List<Long> productIds = orderItems.stream()
                 .map(OrderItemCommand::getProductId)
+                .sorted()
+                .distinct()
+                .toList();
+
+        // 모든 상품에 대해 락 획득 시도
+        for (Long productId : productIds) {
+            if (!distributedLock.acquireLock(productId)) {
+                // 이미 획득한 락들 해제
+                productIds.stream()
+                        .takeWhile(id -> !id.equals(productId))
+                        .forEach(distributedLock::releaseLock);
+
+                throw new IllegalStateException("현재 다른 요청 처리중입니다. 잠시 후 다시 시도해주세요.");
+            }
+        }
+
+        try {
+            return joinPoint.proceed();
+        } finally {
+            // 모든 락 해제
+            productIds.forEach(distributedLock::releaseLock);
+        }
+    }
+
+    private Object handleRestoreStock(ProceedingJoinPoint joinPoint, List<OrderItem> orderItems) throws Throwable {
+        // 상품 ID 기준으로 정렬하여 교착 상태 방지
+        List<Long> productIds = orderItems.stream()
+                .map(OrderItem::getProductId)
                 .sorted()
                 .distinct()
                 .toList();

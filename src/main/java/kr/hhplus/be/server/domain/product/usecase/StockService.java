@@ -3,6 +3,7 @@ package kr.hhplus.be.server.domain.product.usecase;
 import kr.hhplus.be.server.common.aop.annotation.DistributedLock;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.common.aop.annotation.Monitoring;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
 import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
@@ -17,8 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Comparator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -30,38 +30,27 @@ public class StockService {
 
     private final ProductService productService;
     private final StockRepository stockRepository;
-    private final OrderFindService orderFindService;
     private final OrderControlService orderControlService;
+    private final CouponControlService couponControlService;
     private final OrderRepository orderRepository;
+    private final StockRestoreService stockRestoreService;
 
     /**
      * 재고 복구하기
      */
     @Monitored
     @Monitoring
-    @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void restoreStock(Long orderId, List<OrderItem> orderItems) {
-
-        Order order = orderRepository.findById(orderId)
+    @DistributedLock
+    public void restoreStock(Long orderId, List<OrderItem> orderItems, Long userId) {
+        Order order = orderRepository.getOrder(orderId)
                 .orElseThrow(() -> new NoSuchElementException(ErrorCode.ORDER_NOT_FOUND.getMessage()));
 
         if (order.getOrderStatus().equals(OrderStatusType.PENDING)) {
-            log.info("[재고 복구 시작] orderItems={}", orderItems);
+            stockRestoreService.executeRestore(orderItems);
 
-            orderItems.forEach(item -> {
-                Stock stock = stockRepository.getStockWithLock(item.getProductId())
-                        .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_STOCK_NOT_FOUND.getMessage()));
-                stock.restoreStock(item.getQuantity());
-                stockRepository.save(stock);
-
-                log.info("[재고 복구 완료] orderId={}, productId={}, restoredQuantity={}, remainingStock={}",
-                        item.getOrder().getId(),
-                        item.getProductId(),
-                        item.getQuantity(),
-                        stock.getRemainingStock());
-            });
+            couponControlService.revertCouponStatus(order.getId(), userId);
+            orderControlService.cancelOrder(orderItems.get(0).getOrder());
         }
-        orderControlService.cancelOrder(orderItems.get(0).getOrder());
     }
 
     /**
@@ -77,7 +66,7 @@ public class StockService {
         orderItems.stream()
                 .sorted(Comparator.comparing(OrderItemCommand::getProductId))
                 .forEach(item -> {
-                    Stock stock = stockRepository.getStockWithLock(item.getProductId())
+                    Stock stock = stockRepository.getStock(item.getProductId())
                             .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_STOCK_NOT_FOUND.getMessage()));
 
                     log.info("[재고 차감 진행중] productId={}, requestQuantity={}, currentStock={}",

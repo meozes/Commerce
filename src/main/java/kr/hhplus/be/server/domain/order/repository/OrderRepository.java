@@ -7,6 +7,7 @@ import kr.hhplus.be.server.domain.order.entity.Order;
 import org.springframework.data.jpa.repository.Lock;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
+import org.springframework.data.repository.query.Param;
 
 import java.util.List;
 import java.util.Optional;
@@ -21,7 +22,7 @@ public interface OrderRepository {
     Optional<Order> findById(Long id);
 
     @Query("select o from Order o where o.userId = :userId order by o.createdAt desc limit 1")
-    Order getUserLatestOrder(Long userId);
+    Order getUserLatestOrder(@Param("userId") Long userId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({
