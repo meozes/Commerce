@@ -29,8 +29,6 @@ spring:
           order_inserts: true
           order_updates: true
   redis:
-    host: localhost
-    port: 6379
     redisson:
       config: |
         singleServerConfig:
@@ -39,6 +37,10 @@ spring:
           timeout: 3000
           retryAttempts: 3
           retryInterval: 1500
+  data:
+    redis:
+      host: localhost
+      port: 6379
 #  sql:
 #    init:
 #      mode: always

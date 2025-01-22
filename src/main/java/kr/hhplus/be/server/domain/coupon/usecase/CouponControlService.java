@@ -45,9 +45,9 @@ public class CouponControlService {
     /**
      * 쿠폰 발급하기
      */
-    @DistributedLockOperation
+
     @Monitored
-    @Transactional
+    @DistributedLockOperation
     public CouponInfo issueCoupon(CouponCommand command) {
 
         log.info("[쿠폰 발급 시작] userId={}, couponId={}", command.getUserId(), command.getCouponId());
