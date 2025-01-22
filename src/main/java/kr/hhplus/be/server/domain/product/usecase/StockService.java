@@ -70,6 +70,8 @@ public class StockService {
                             stock.getRemainingStock());
 
                     if (stock.getRemainingStock() < item.getQuantity()) {
+                        log.info("[재고 부족으로 차감 실패]");
+
                         throw new IllegalStateException(
                                 String.format(ErrorCode.INSUFFICIENT_STOCK.getMessage() + " 상품ID: %d, 요청수량: %d, 재고수량: %d",
                                         item.getProductId(),
