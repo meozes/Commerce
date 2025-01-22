@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.domain.coupon.usecase;
 
 import jakarta.transaction.Transactional;
-import kr.hhplus.be.server.common.aop.annotation.DistributedLockOperation;
+import kr.hhplus.be.server.common.aop.annotation.DistributedLock;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
@@ -14,7 +14,6 @@ import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.dao.PessimisticLockingFailureException;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -47,7 +46,7 @@ public class CouponControlService {
      */
 
     @Monitored
-    @DistributedLockOperation
+    @DistributedLock
     public CouponInfo issueCoupon(CouponCommand command) {
 
         log.info("[쿠폰 발급 시작] userId={}, couponId={}", command.getUserId(), command.getCouponId());

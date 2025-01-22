@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.domain.product.usecase;
 
+import kr.hhplus.be.server.common.aop.annotation.DistributedLock;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.common.aop.annotation.Monitoring;
 import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.product.entity.Stock;
-import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +54,7 @@ public class StockService {
      */
     @Monitored
     @Monitoring
+    @DistributedLock
     public void validateAndDeductStock(List<OrderItemCommand> orderItems) {
         productService.validateProducts(orderItems);  // 상품 존재 확인
 
