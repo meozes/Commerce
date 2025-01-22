@@ -1,11 +1,11 @@
 package kr.hhplus.be.server.domain.product.usecase;
 
+import kr.hhplus.be.server.common.aop.annotation.DistributedLock;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.common.aop.annotation.Monitoring;
 import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.product.entity.Stock;
-import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
@@ -54,6 +54,7 @@ public class StockService {
      */
     @Monitored
     @Monitoring
+    @DistributedLock
     public void validateAndDeductStock(List<OrderItemCommand> orderItems) {
         productService.validateProducts(orderItems);  // 상품 존재 확인
 
@@ -70,6 +71,8 @@ public class StockService {
                             stock.getRemainingStock());
 
                     if (stock.getRemainingStock() < item.getQuantity()) {
+                        log.info("[재고 부족으로 차감 실패]");
+
                         throw new IllegalStateException(
                                 String.format(ErrorCode.INSUFFICIENT_STOCK.getMessage() + " 상품ID: %d, 요청수량: %d, 재고수량: %d",
                                         item.getProductId(),
