@@ -90,33 +90,37 @@ public class BalanceService {
     @Transactional
     public BalanceInfo deductBalance(Long userId, Integer amount) {
 
-        log.info("[잔고 차감 시작] userId={}, deductAmount={}", userId, amount);
+        try{
+            log.info("[잔고 차감 시작] userId={}, deductAmount={}", userId, amount);
 
-        userIdValidator.validate(userId);
-        amountValidator.validateDeductAmount(amount);
+            userIdValidator.validate(userId);
+            amountValidator.validateDeductAmount(amount);
 
-        Balance balance = balanceRepository.getBalanceWithLock(userId)
-                .orElseGet(() -> createBalance(userId));
+            Balance balance = balanceRepository.getBalance(userId)
+                    .orElseGet(() -> createBalance(userId));
 
-        Integer beforeBalance = balance.getBalance();
-        balance.deduct(amount);
-        Balance deducted = balanceRepository.save(balance);
+            Integer beforeBalance = balance.getBalance();
+            balance.deduct(amount);
+            Balance deducted = balanceRepository.save(balance);
 
-        historyRepository.saveHistory(
-                beforeBalance,
-                deducted.getBalance(),
-                deducted.getId(),
-                TransactionType.USE,
-                amount
-        );
+            historyRepository.saveHistory(
+                    beforeBalance,
+                    deducted.getBalance(),
+                    deducted.getId(),
+                    TransactionType.USE,
+                    amount
+            );
 
-        log.info("[잔고 차감 완료] userId={}, beforeBalance={}, afterBalance={}, deductedAmount={}",
-                userId,
-                beforeBalance,
-                deducted.getBalance(),
-                amount);
-
-        return BalanceInfo.from(balance);
+            log.info("[잔고 차감 완료] userId={}, beforeBalance={}, afterBalance={}, deductedAmount={}",
+                    userId,
+                    beforeBalance,
+                    deducted.getBalance(),
+                    amount);
+            return BalanceInfo.from(balance);
+        } catch(StaleObjectStateException | ObjectOptimisticLockingFailureException e) {
+            log.warn("잔고 금액 차감 처리 중 낙관적 락 충돌 발생: userId={}", userId, e);
+            throw new OptimisticLockingFailureException(ErrorCode.ALREADY_DEDUCTED.getMessage(), (ObjectOptimisticLockingFailureException) e);
+        }
     }
 
     /**
