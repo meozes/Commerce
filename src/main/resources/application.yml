@@ -47,17 +47,6 @@ spring:
 #    init:
 #      mode: always
 
-management:
-  endpoints:
-    web:
-      exposure:
-        include: "*"
-  endpoint:
-    health:
-      show-details: always
-  metrics:
-    enabled: true
-
 rate:
   limit:
     enabled: false

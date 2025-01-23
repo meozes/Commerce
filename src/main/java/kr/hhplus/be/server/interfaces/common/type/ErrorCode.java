@@ -16,6 +16,8 @@ public enum ErrorCode {
     INSUFFICIENT_BALANCE("잔액이 부족합니다."),
     DEDUCTION_AMOUNT_REQUIRED("차감 금액은 필수입니다."),
     INVALID_DEDUCTION_AMOUNT("차감 금액은 0보다 커야 합니다."),
+    ALREADY_CHARGED("충전 요청이 이미 처리되었습니다."),
+    ALREADY_DEDUCTED("차감 요청이 이미 처리되었습니다."),
 
     // Coupon
     COUPON_OUT_OF_STOCK("쿠폰이 모두 소진되었습니다."),
