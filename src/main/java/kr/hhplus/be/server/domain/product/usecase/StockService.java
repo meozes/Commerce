@@ -41,7 +41,7 @@ public class StockService {
     @Monitored
     @Monitoring
     @DistributedLock
-    public void restoreStock(Long orderId, List<OrderItem> orderItems, Long userId) {
+    public void restoreStock(List<OrderItem> orderItems, Long orderId, Long userId) {
         Order order = orderRepository.getOrder(orderId)
                 .orElseThrow(() -> new NoSuchElementException(ErrorCode.ORDER_NOT_FOUND.getMessage()));
 

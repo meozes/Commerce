@@ -1,6 +1,8 @@
 package kr.hhplus.be.server.interfaces.product;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import kr.hhplus.be.server.domain.balance.entity.Balance;
+import kr.hhplus.be.server.domain.balance.repository.BalanceRepository;
 import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
@@ -72,6 +74,9 @@ class StockRestoringRedisLockIntegrationTest {
     @Autowired
     private ProductRepository productRepository;
 
+    @Autowired
+    private BalanceRepository balanceRepository;
+
 
     @Container
     static MySQLContainer<?> mysql = new MySQLContainer<>("mysql:8.0")
@@ -93,19 +98,15 @@ class StockRestoringRedisLockIntegrationTest {
         registry.add("spring.data.redis.port", redis::getFirstMappedPort);
     }
 
-//    @BeforeEach
-//    void setUp() {
-//
-//    }
 
     @Test
     @DisplayName("Redisson 분산 락을 통한 동시성 재고 복구 테스트 - 정상 케이스")
     void stockRestoring_withRLock() throws Exception {
 
         // given
-        int threadCount = 10;
-        CountDownLatch latch = new CountDownLatch(threadCount);
-        ExecutorService executorService = Executors.newFixedThreadPool(32);
+        int numberOfThreads = 10;
+        CountDownLatch latch = new CountDownLatch(numberOfThreads);
+        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
 
         // 1. 상품 생성
         Product product = Product.builder()
@@ -118,15 +119,16 @@ class StockRestoringRedisLockIntegrationTest {
         Stock stock = Stock.builder()
                 .product(product)
                 .originStock(100)
-                .remainingStock(90) // 이미 10개가 차감된 상태로 가정
+                .remainingStock(0)
                 .build();
         stockRepository.save(stock);
+
 
         // 3. 주문 생성 및 주문 상품 생성을 위한 리스트
         List<CompletableFuture<Void>> futures = new ArrayList<>();
 
         // when
-        for (int i = 0; i < threadCount; i++) {
+        for (int i = 0; i < numberOfThreads; i++) {
             final long userId = i + 1; // 각기 다른 유저 ID 설정
             CompletableFuture<Void> future = CompletableFuture.runAsync(() -> {
                 try {
@@ -150,6 +152,12 @@ class StockRestoringRedisLockIntegrationTest {
                             .totalPrice(product.getPrice() * 10)
                             .build();
                     orderItemRepository.save(orderItem);
+
+                    Balance balance = Balance.builder()
+                            .userId(userId)
+                            .balance(1000)
+                            .build();
+                    balanceRepository.save(balance);
 
                     // 결제 요청 데이터 생성
                     PaymentRequest request = new PaymentRequest(

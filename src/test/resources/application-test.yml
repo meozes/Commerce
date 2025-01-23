@@ -6,8 +6,8 @@ spring:
         batch_size: 1000
       order_inserts: true
       order_updates: true
-      javax.persistence.lock.timeout: 5000
-      javax.persistence.query.timeout: 5000
+      jakarta.persistence.lock.timeout: 5000
+      jakarta.persistence.query.timeout: 5000
       ddl-auto: update
     show-sql: true
     properties:
@@ -16,4 +16,4 @@ spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
     hikari:
-      maximum-pool-size: 10
+      maximum-pool-size: 40

@@ -71,7 +71,7 @@ public class PaymentFacade {
                     command.getAmount());
 
             // 3-1. 재고 복구
-            stockService.restoreStock(order.getId(), items, command.getUserId());
+            stockService.restoreStock(items, order.getId(), command.getUserId());
 
             throw new IllegalStateException(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
         }

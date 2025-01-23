@@ -10,6 +10,8 @@ import org.aspectj.lang.ProceedingJoinPoint;
 import org.aspectj.lang.annotation.Around;
 import org.aspectj.lang.annotation.Aspect;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -25,11 +27,9 @@ public class DistributedLockAspect {
     public Object proceed(ProceedingJoinPoint joinPoint) throws Throwable {
         Object[] args = joinPoint.getArgs();
 
-        // CouponCommand 처리
         if (args.length > 0 && args[0] instanceof CouponCommand) {
             return handleCouponLock(joinPoint, (CouponCommand) args[0]);
         }
-
 
         if (args.length > 0 && args[0] instanceof List<?>) {
             List<?> items = (List<?>) args[0];
@@ -39,6 +39,7 @@ public class DistributedLockAspect {
             else if(!items.isEmpty() && items.get(0) instanceof OrderItem) {
                 return handleRestoreStock(joinPoint, (List<OrderItem>) items);
             }
+
         }
 
         return joinPoint.proceed();
@@ -113,4 +114,6 @@ public class DistributedLockAspect {
             productIds.forEach(distributedLock::releaseLock);
         }
     }
+
+
 }
