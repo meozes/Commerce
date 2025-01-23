@@ -46,9 +46,9 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @ActiveProfiles("test")
 @AutoConfigureMockMvc
 @Testcontainers
-class StockRedisLockIntegrationTest {
+class StockDeductionRedisLockIntegrationTest {
 
-    private static final Logger log = LoggerFactory.getLogger(StockRedisLockIntegrationTest.class);
+    private static final Logger log = LoggerFactory.getLogger(StockDeductionRedisLockIntegrationTest.class);
 
     @Autowired
     private MockMvc mockMvc;

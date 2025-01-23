@@ -7,12 +7,13 @@ import org.springframework.stereotype.Repository;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface StockRepositoryImpl extends JpaRepository<Stock, Long>, StockRepository {
     @Override
-    default Stock getStock(Long productId) {
-        return findByProductId(productId);
+    default Optional<Stock> getStock(Long productId) {
+        return Optional.ofNullable(findByProductId(productId));
     }
 
     @Override

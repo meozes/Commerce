@@ -16,6 +16,7 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 import java.util.Map;
 import java.util.NoSuchElementException;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -36,7 +37,9 @@ public class ProductService {
         Product product = productRepository.getProduct(productSearch.getProductId()).orElseThrow(
                 () -> new NoSuchElementException(ErrorCode.PRODUCT_NOT_FOUND.getMessage())
         );
-        Stock stock = stockRepository.getStock(productSearch.getProductId());
+        Stock stock = stockRepository.getStock(productSearch.getProductId()).orElseThrow(
+                () -> new NoSuchElementException(ErrorCode.PRODUCT_STOCK_NOT_FOUND.getMessage())
+        );
 
         return ProductInfo.of(product, stock);
     }
