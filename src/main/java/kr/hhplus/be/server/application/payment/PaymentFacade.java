@@ -65,13 +65,17 @@ public class PaymentFacade {
             // 3. 잔고 조회, 차감
             balanceService.deductBalance(command.getUserId(), command.getAmount());
         } catch (NotEnoughBalanceException e) {
-            log.warn("[결제 실패 - 잔액 부족] orderId={}, userId={}, requestAmount={}",
+            log.error("[결제 실패 - 잔액 부족] orderId={}, userId={}, requestAmount={}",
                     command.getOrderId(),
                     command.getUserId(),
                     command.getAmount());
 
             // 3-1. 재고 복구
             stockService.restoreStock(items, order.getId(), command.getUserId());
+            // 3-2. 쿠폰 상태 복구
+            couponControlService.revertCouponStatus(order.getId(), command.getUserId());
+            // 3-3. 주문 취소
+            orderControlService.cancelOrder(order);
 
             throw new IllegalStateException(ErrorCode.INSUFFICIENT_BALANCE.getMessage());
         }

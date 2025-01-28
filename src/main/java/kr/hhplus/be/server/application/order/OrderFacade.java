@@ -7,15 +7,20 @@ import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
 import kr.hhplus.be.server.domain.order.dto.OrderAmountInfo;
 import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
+import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
 import kr.hhplus.be.server.domain.order.service.OrderAmountCalculator;
 import kr.hhplus.be.server.domain.order.usecase.*;
 import kr.hhplus.be.server.domain.order.validation.OrderValidator;
 import kr.hhplus.be.server.domain.product.usecase.StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.redisson.api.RLock;
+import org.redisson.api.RedissonClient;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.concurrent.TimeUnit;
 import java.util.stream.Collectors;
 
 @Slf4j
@@ -28,6 +33,7 @@ public class OrderFacade {
     private final StockService stockService;
     private final OrderValidator orderValidator;
     private final OrderAmountCalculator orderAmountCalculator;
+    private final RedissonClient redissonClient; // RedissonClient 주입
 
 
     @Transactional

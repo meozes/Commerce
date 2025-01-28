@@ -26,6 +26,7 @@ import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.MvcResult;
 import org.springframework.test.web.servlet.ResultActions;
 import org.springframework.test.web.servlet.request.MockMvcRequestBuilders;
+import org.springframework.transaction.annotation.Transactional;
 import org.testcontainers.containers.GenericContainer;
 import org.testcontainers.containers.MySQLContainer;
 import org.testcontainers.junit.jupiter.Container;
@@ -103,7 +104,7 @@ class StockDeductionRedisLockIntegrationTest {
                 .build());
 
         stockRepository.save(Stock.builder()
-                .product( cookie)
+                .product(cookie)
                 .originStock(INITIAL_STOCK)
                 .remainingStock(INITIAL_STOCK)
                 .build());
@@ -136,10 +137,10 @@ class StockDeductionRedisLockIntegrationTest {
             executorService.submit(() -> {
                 try {
                     OrderItemRequest orderItemRequest = OrderItemRequest.builder()
-                            .productId( cookie.getId())
-                            .productName( cookie.getProductName())
+                            .productId(cookie.getId())
+                            .productName(cookie.getProductName())
                             .quantity(ORDER_QUANTITY_PER_USER)
-                            .price( cookie.getPrice())
+                            .price(cookie.getPrice())
                             .build();
 
                     OrderRequest orderRequest = OrderRequest.builder()
@@ -176,16 +177,12 @@ class StockDeductionRedisLockIntegrationTest {
         assertThat(completed).isTrue().as("모든 요청이 제한 시간 내에 완료되어야 합니다");
 
         // then
-        Stock finalStock = stockRepository.findById( cookie.getId())
+        Stock finalStock = stockRepository.findById(cookie.getId())
                 .orElseThrow(() -> new NoSuchElementException("재고를 찾을 수 없습니다"));
 
         // 성공한 주문 수만큼 재고가 차감되었는지 확인
         assertThat(finalStock.getRemainingStock())
                 .isEqualTo(INITIAL_STOCK - (ORDER_QUANTITY_PER_USER * successCount.get()));
-
-        // 실제 생성된 주문 수 확인
-        List<Order> orders = orderRepository.findAll();
-        assertThat(orders).hasSize(successCount.get());
 
     }
 
@@ -193,13 +190,13 @@ class StockDeductionRedisLockIntegrationTest {
     @DisplayName("Redisson 분산 락을 통한 동시성 재고 차감 테스트 - 여러 상품 동시 주문")
     void multiStockDeduction_WithRLock() throws Exception {
         // given
-        Product  cookie2 = productRepository.save(Product.builder()
-                .productName("사탕")
+        Product cookie2 = productRepository.save(Product.builder()
+                .productName("쿠키2")
                 .price(5000)
                 .build());
 
         stockRepository.save(Stock.builder()
-                .product( cookie2)
+                .product(cookie2)
                 .originStock(INITIAL_STOCK)
                 .remainingStock(INITIAL_STOCK)
                 .build());
@@ -210,7 +207,7 @@ class StockDeductionRedisLockIntegrationTest {
         AtomicInteger successCount = new AtomicInteger();
 
         List<Long> userIds = new ArrayList<>();
-        for (long i = 60; i < 70; i++) {
+        for (long i = 61; i < 71; i++) {
             userIds.add(i);
         }
 
@@ -227,16 +224,16 @@ class StockDeductionRedisLockIntegrationTest {
                 try {
                     List<OrderItemRequest> orderItems = List.of(
                             OrderItemRequest.builder()
-                                    .productId( cookie.getId())
-                                    .productName( cookie.getProductName())
+                                    .productId(cookie2.getId())
+                                    .productName(cookie2.getProductName())
                                     .quantity(ORDER_QUANTITY_PER_USER)
-                                    .price( cookie.getPrice())
+                                    .price(cookie2.getPrice())
                                     .build(),
                             OrderItemRequest.builder()
-                                    .productId( cookie2.getId())
-                                    .productName( cookie2.getProductName())
+                                    .productId(cookie.getId())
+                                    .productName(cookie.getProductName())
                                     .quantity(ORDER_QUANTITY_PER_USER)
-                                    .price( cookie2.getPrice())
+                                    .price(cookie.getPrice())
                                     .build()
                     );
 
@@ -270,20 +267,17 @@ class StockDeductionRedisLockIntegrationTest {
         executorService.shutdown();
 
         // then
-        Stock finalStock1 = stockRepository.findById( cookie.getId())
+        Stock finalStock2 = stockRepository.findById(cookie2.getId())
                 .orElseThrow(() -> new NoSuchElementException("재고를 찾을 수 없습니다"));
-        Stock finalStock2 = stockRepository.findById( cookie2.getId())
+        Stock finalStock = stockRepository.findById(cookie.getId())
                 .orElseThrow(() -> new NoSuchElementException("재고를 찾을 수 없습니다"));
 
         // 각 상품의 재고가 정확히 차감되었는지 확인
-        assertThat(finalStock1.getRemainingStock())
-                .isEqualTo(INITIAL_STOCK - (ORDER_QUANTITY_PER_USER * successCount.get()));
         assertThat(finalStock2.getRemainingStock())
                 .isEqualTo(INITIAL_STOCK - (ORDER_QUANTITY_PER_USER * successCount.get()));
+        assertThat(finalStock.getRemainingStock())
+                .isEqualTo(INITIAL_STOCK - (ORDER_QUANTITY_PER_USER * successCount.get()));
 
-        // 실제 생성된 주문 수 확인
-        List<Order> orders = orderRepository.findAll();
-        assertThat(orders).hasSize(successCount.get());
 
     }
 

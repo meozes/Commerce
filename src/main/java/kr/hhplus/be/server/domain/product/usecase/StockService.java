@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.product.usecase;
 
+import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.common.aop.annotation.DistributedLock;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.common.aop.annotation.Monitoring;
@@ -10,7 +11,6 @@ import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import kr.hhplus.be.server.domain.order.type.OrderStatusType;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
-import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import kr.hhplus.be.server.domain.product.entity.Stock;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Comparator;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
 
 
 import java.util.List;
@@ -40,17 +41,16 @@ public class StockService {
      */
     @Monitored
     @Monitoring
-    @DistributedLock
+    @DistributedLock(lockName = "stock_lock", waitTime = 5000, leaseTime = 10000)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void restoreStock(List<OrderItem> orderItems, Long orderId, Long userId) {
-        Order order = orderRepository.getOrder(orderId)
-                .orElseThrow(() -> new NoSuchElementException(ErrorCode.ORDER_NOT_FOUND.getMessage()));
-
-        if (order.getOrderStatus().equals(OrderStatusType.PENDING)) {
-            stockRestoreService.executeRestore(orderItems);
-
-            couponControlService.revertCouponStatus(order.getId(), userId);
-            orderControlService.cancelOrder(orderItems.get(0).getOrder());
-        }
+        stockRestoreService.executeRestore(orderItems);
+//        Order order = orderRepository.getOrder(orderId)
+//                .orElseThrow(() -> new NoSuchElementException(ErrorCode.ORDER_NOT_FOUND.getMessage()));
+//
+//        if (order.getOrderStatus().equals(OrderStatusType.PENDING)) {
+//            stockRestoreService.executeRestore(orderItems);
+//        }
     }
 
     /**
@@ -58,7 +58,8 @@ public class StockService {
      */
     @Monitored
     @Monitoring
-    @DistributedLock
+    @DistributedLock(lockName = "stock_lock",  waitTime = 5000, leaseTime = 10000)
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public void validateAndDeductStock(List<OrderItemCommand> orderItems) {
         productService.validateProducts(orderItems);  // 상품 존재 확인
 

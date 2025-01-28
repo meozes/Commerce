@@ -82,7 +82,6 @@ public class BalanceService {
     @Transactional
     public BalanceInfo deductBalance(Long userId, Integer amount) {
 
-
         log.info("[잔고 차감 시작] userId={}, deductAmount={}", userId, amount);
 
         userIdValidator.validate(userId);
