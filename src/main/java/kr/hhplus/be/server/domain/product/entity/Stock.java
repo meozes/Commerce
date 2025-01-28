@@ -4,12 +4,14 @@ import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.*;
+import lombok.extern.slf4j.Slf4j;
 
 @Entity
 @Getter
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor(access = AccessLevel.PROTECTED)
+@Slf4j
 public class Stock extends BaseTimeEntity {
 
     @Id
@@ -33,6 +35,8 @@ public class Stock extends BaseTimeEntity {
     }
 
     public void restoreStock(int quantity) {
+        log.info("재고 복구 전: {}", this.remainingStock);
         this.remainingStock = this.remainingStock + quantity;
+        log.info("재고 복구 후: {}", this.remainingStock);
     }
 }

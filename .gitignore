@@ -37,3 +37,5 @@ out/
 .vscode/
 
 data
+full-log.txt
+logs/application.log

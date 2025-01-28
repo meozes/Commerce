@@ -15,4 +15,6 @@ public interface OrderItemRepository {
     List<ProductRankInfo> findTopProductsByOrderDate(LocalDate startDate, LocalDate endDate);
 
     List<OrderItem> findAll();
+
+    void save(OrderItem orderItem);
 }

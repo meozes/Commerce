@@ -1,10 +1,11 @@
 package kr.hhplus.be.server.domain.order.usecase;
 
-import jakarta.transaction.Transactional;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Propagation;
+import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
@@ -24,7 +25,7 @@ public class OrderControlService {
     /**
      * 주문 취소하기
      */
-    @Transactional
+    @Transactional(propagation = Propagation.REQUIRES_NEW)
     public Order cancelOrder(Order order) {
         order.canceled();
         return orderRepository.save(order);

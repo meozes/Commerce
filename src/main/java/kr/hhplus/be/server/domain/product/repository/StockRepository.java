@@ -13,11 +13,11 @@ import java.util.List;
 import java.util.Optional;
 
 public interface StockRepository {
-    Stock getStock(Long productId);
+    Optional<Stock> getStock(Long productId);
 
     @Lock(LockModeType.PESSIMISTIC_WRITE)
     @QueryHints({
-            @QueryHint(name = "javax.persistence.lock.timeout", value = "5000"),
+            @QueryHint(name = "jakarta.persistence.lock.timeout", value = "5000"),
             @QueryHint(name = "jakarta.persistence.lock.scope", value = "EXTENDED")
     })
     @Query("select s from Stock s where s.product.id = :productId")

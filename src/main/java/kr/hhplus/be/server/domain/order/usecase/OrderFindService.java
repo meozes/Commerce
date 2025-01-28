@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.order.usecase;
 
 import kr.hhplus.be.server.domain.order.dto.OrderInfo;
+import kr.hhplus.be.server.domain.order.dto.UserOrderInfo;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
 import kr.hhplus.be.server.domain.order.repository.OrderRepository;
@@ -29,12 +30,26 @@ public class OrderFindService {
     }
 
     /**
+     * 주문 찾기
+     */
+    public OrderInfo getOrderWithLock(Long orderId) {
+        return OrderInfo.from(orderRepository.getOrderWithLock(orderId)
+                .orElseThrow(() -> new NoSuchElementException(ErrorCode.ORDER_NOT_FOUND.getMessage() + orderId)));
+    }
+
+    /**
      * 주문 아이템 찾기
      */
     public List<OrderItem> getOrderItems(Long orderId) {
         return orderItemRepository.getOrderItems(orderId);
     }
 
+    /**
+     * 유저의 최근 주문 찾기
+     */
+    public UserOrderInfo getUserLatestOrder(Long userId) {
+        return UserOrderInfo.of(orderRepository.getUserLatestOrder(userId));
+    }
     /**
      * 주문에서 인기상품 찾기
      */

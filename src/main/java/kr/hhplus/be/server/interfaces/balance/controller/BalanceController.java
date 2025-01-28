@@ -9,8 +9,10 @@ import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.interfaces.balance.request.ChargeRequest;
+import kr.hhplus.be.server.interfaces.balance.request.DeductRequest;
 import kr.hhplus.be.server.interfaces.balance.response.BalanceResponse;
 import kr.hhplus.be.server.interfaces.balance.response.ChargeResponse;
+import kr.hhplus.be.server.interfaces.balance.response.DeductResponse;
 import kr.hhplus.be.server.interfaces.common.response.ApiResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -43,6 +45,16 @@ public class BalanceController {
         ChargeCommand command = ChargeCommand.from(request);
         BalanceInfo info = balanceService.chargeBalance(command);
         return ApiResponse.ok(ChargeResponse.of(info, request.getAmount()));
+    }
+
+    @Operation(summary = "잔고 차감", description = "잔고를 차감합니다.")
+    @PostMapping("/deduct")
+    public ApiResponse<DeductResponse> deductBalance(
+            @Parameter(description = "차감 요청 정보")
+            @Valid @RequestBody DeductRequest request
+    ) {
+        BalanceInfo info = balanceService.deductBalance(request.getUserId(), request.getAmount());
+        return ApiResponse.ok(DeductResponse.from(info));
     }
 
 }

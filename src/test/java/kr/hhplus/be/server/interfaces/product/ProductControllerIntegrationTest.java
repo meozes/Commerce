@@ -27,6 +27,7 @@ import org.testcontainers.junit.jupiter.Container;
 import java.time.LocalDate;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Optional;
 
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -103,7 +104,7 @@ class ProductControllerIntegrationTest {
     void getProduct_Success() throws Exception {
         // given
         Product savedProduct = productRepository.findAll().get(0);
-        Stock savedStock = stockRepository.getStock(savedProduct.getId());
+        Optional<Stock> savedStock = stockRepository.getStock(savedProduct.getId());
 
         // when
         ResultActions result = mockMvc.perform(
@@ -117,7 +118,7 @@ class ProductControllerIntegrationTest {
                 .andExpect(jsonPath("$.data.productId").value(savedProduct.getId()))
                 .andExpect(jsonPath("$.data.productName").value(savedProduct.getProductName()))
                 .andExpect(jsonPath("$.data.price").value(savedProduct.getPrice()))
-                .andExpect(jsonPath("$.data.remainingStock").value(savedStock.getRemainingStock()));
+                .andExpect(jsonPath("$.data.remainingStock").value(savedStock.map(Stock::getRemainingStock).orElse(null)));
     }
 
     @Test

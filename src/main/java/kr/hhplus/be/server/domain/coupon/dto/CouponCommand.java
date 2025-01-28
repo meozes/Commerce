@@ -1,6 +1,5 @@
 package kr.hhplus.be.server.domain.coupon.dto;
 
-import kr.hhplus.be.server.domain.order.dto.OrderCommand;
 import lombok.Builder;
 import lombok.Getter;
 

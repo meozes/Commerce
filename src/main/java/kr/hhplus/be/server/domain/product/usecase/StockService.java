@@ -1,18 +1,24 @@
 package kr.hhplus.be.server.domain.product.usecase;
 
+import kr.hhplus.be.server.common.aop.annotation.DistributedLock;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.common.aop.annotation.Monitoring;
+import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
 import kr.hhplus.be.server.domain.order.dto.OrderItemCommand;
+import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
+import kr.hhplus.be.server.domain.order.repository.OrderRepository;
+import kr.hhplus.be.server.domain.order.type.OrderStatusType;
+import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
+import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import kr.hhplus.be.server.domain.product.entity.Stock;
-import kr.hhplus.be.server.domain.product.repository.ProductRepository;
 import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.util.Comparator;
 import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
+
 
 import java.util.List;
 import java.util.NoSuchElementException;
@@ -24,29 +30,27 @@ public class StockService {
 
     private final ProductService productService;
     private final StockRepository stockRepository;
+    private final OrderControlService orderControlService;
+    private final CouponControlService couponControlService;
+    private final OrderRepository orderRepository;
+    private final StockRestoreService stockRestoreService;
 
     /**
      * 재고 복구하기
      */
     @Monitored
     @Monitoring
-    @Transactional
-    public void restoreStock(List<OrderItem> orderItems) {
-        log.info("[재고 복구 시작] orderItems={}", orderItems);
+    @DistributedLock
+    public void restoreStock(List<OrderItem> orderItems, Long orderId, Long userId) {
+        Order order = orderRepository.getOrder(orderId)
+                .orElseThrow(() -> new NoSuchElementException(ErrorCode.ORDER_NOT_FOUND.getMessage()));
 
-        orderItems.forEach(item -> {
-                    Stock stock = stockRepository.getStockWithLock(item.getProductId())
-                                    .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_STOCK_NOT_FOUND.getMessage()));
-                    stock.restoreStock(item.getQuantity());
-                    stockRepository.save(stock);
+        if (order.getOrderStatus().equals(OrderStatusType.PENDING)) {
+            stockRestoreService.executeRestore(orderItems);
 
-            log.info("[재고 복구 완료] productId={}, restoredQuantity={}, remainingStock={}",
-                    item.getProductId(),
-                    item.getQuantity(),
-                    stock.getRemainingStock());
-        });
-
-
+            couponControlService.revertCouponStatus(order.getId(), userId);
+            orderControlService.cancelOrder(orderItems.get(0).getOrder());
+        }
     }
 
     /**
@@ -54,6 +58,7 @@ public class StockService {
      */
     @Monitored
     @Monitoring
+    @DistributedLock
     public void validateAndDeductStock(List<OrderItemCommand> orderItems) {
         productService.validateProducts(orderItems);  // 상품 존재 확인
 
@@ -61,7 +66,7 @@ public class StockService {
         orderItems.stream()
                 .sorted(Comparator.comparing(OrderItemCommand::getProductId))
                 .forEach(item -> {
-                    Stock stock = stockRepository.getStockWithLock(item.getProductId())
+                    Stock stock = stockRepository.getStock(item.getProductId())
                             .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_STOCK_NOT_FOUND.getMessage()));
 
                     log.info("[재고 차감 진행중] productId={}, requestQuantity={}, currentStock={}",
@@ -70,6 +75,8 @@ public class StockService {
                             stock.getRemainingStock());
 
                     if (stock.getRemainingStock() < item.getQuantity()) {
+                        log.info("[재고 부족으로 차감 실패]");
+
                         throw new IllegalStateException(
                                 String.format(ErrorCode.INSUFFICIENT_STOCK.getMessage() + " 상품ID: %d, 요청수량: %d, 재고수량: %d",
                                         item.getProductId(),
