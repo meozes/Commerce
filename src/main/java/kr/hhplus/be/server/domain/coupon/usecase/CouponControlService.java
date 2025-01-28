@@ -1,5 +1,6 @@
 package kr.hhplus.be.server.domain.coupon.usecase;
 
+import kr.hhplus.be.server.common.aop.annotation.DistributedLock;
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
@@ -46,7 +47,7 @@ public class CouponControlService {
      */
 
     @Monitored
-//    @DistributedLock
+    @DistributedLock(lockName = "coupon_lock", waitTime = 5000, leaseTime = 10000)
     public CouponInfo issueCoupon(CouponCommand command) {
 
         log.info("[쿠폰 발급 시작] userId={}, couponId={}", command.getUserId(), command.getCouponId());

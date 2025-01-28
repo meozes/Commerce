@@ -77,7 +77,7 @@ public class CouponServiceTest {
         // when
         doNothing().when(couponValidator).validateUserId(userId);
         doNothing().when(couponValidator).validateCouponQuantity(coupon);
-        when(couponRepository.getCouponWithLock(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.getCoupon(couponId)).thenReturn(Optional.of(coupon));
         when(couponRepository.save(any(Coupon.class))).thenReturn(coupon);
         when(issuedCouponRepository.save(any(IssuedCoupon.class))).thenReturn(issuedCoupon);
 
@@ -92,7 +92,7 @@ public class CouponServiceTest {
 
         verify(couponValidator).validateUserId(userId);
         verify(couponValidator).validateCouponQuantity(coupon);
-        verify(couponRepository).getCouponWithLock(couponId);
+        verify(couponRepository).getCoupon(couponId);
         verify(couponRepository).save(coupon);
         verify(issuedCouponRepository).save(any(IssuedCoupon.class));
     }
@@ -136,7 +136,7 @@ public class CouponServiceTest {
         doNothing().when(couponValidator).validateUserId(userId);
         doThrow(new IllegalStateException("쿠폰이 모두 소진되었습니다." + couponId))
                 .when(couponValidator).validateCouponQuantity(coupon);
-        when(couponRepository.getCouponWithLock(couponId)).thenReturn(Optional.of(coupon));
+        when(couponRepository.getCoupon(couponId)).thenReturn(Optional.of(coupon));
 
         // when & then
         assertThrows(IllegalStateException.class, () -> {
@@ -145,7 +145,7 @@ public class CouponServiceTest {
 
         verify(couponValidator).validateUserId(userId);
         verify(couponValidator).validateCouponQuantity(coupon);
-        verify(couponRepository).getCouponWithLock(couponId);
+        verify(couponRepository).getCoupon(couponId);
     }
 
     @Test

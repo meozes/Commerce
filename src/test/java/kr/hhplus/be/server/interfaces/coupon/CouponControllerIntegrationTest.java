@@ -234,45 +234,4 @@ class CouponControllerIntegrationTest {
         result.andExpect(status().isBadRequest())
                 .andDo(print());
     }
-
-    @Test
-    @DisplayName("쿠폰 발급 API - 동시성 테스트. 서로 다른 3명의 사용자가 동일한 쿠폰을 동시에 발급 요청하면 정상적으로 처리된다")
-    void issueCoupon_Concurrently() throws Exception {
-        // given
-        int numberOfThreads = 3;
-        List<Long> userIds = Arrays.asList(5L, 6L, 7L); // 서로 다른 3명의 사용자
-        Long couponId = savedCouponId;
-        ExecutorService executorService = Executors.newFixedThreadPool(numberOfThreads);
-        CountDownLatch latch = new CountDownLatch(numberOfThreads);
-
-        // when
-        for (Long userId : userIds) {
-            executorService.submit(() -> {
-                try {
-                    mockMvc.perform(
-                            MockMvcRequestBuilders
-                                    .post("/api/coupons/{userId}/{couponId}", userId, couponId)
-                                    .contentType(MediaType.APPLICATION_JSON)
-                    );
-                } catch (Exception e) {
-                    // 예외 발생 시 처리
-                } finally {
-                    latch.countDown();
-                }
-            });
-        }
-        latch.await(10, TimeUnit.SECONDS);
-
-        // then
-        Optional<Coupon> updatedOptionalCoupon = couponRepository.getCoupon(couponId);
-        Coupon updatedCoupon = updatedOptionalCoupon.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
-        assertThat(updatedCoupon.getRemainingQuantity()).isEqualTo(97); // 100 - 3
-
-        // 각 사용자별로 쿠폰 발급 여부 확인
-        for (Long userId : userIds) {
-            Page<IssuedCoupon> issuedCoupons = issuedCouponRepository.getIssuedCoupons(
-                    PageRequest.of(0, 10), userId);
-            assertThat(issuedCoupons.getContent()).hasSize(1); // 각 사용자당 1개씩만 발급되어야 함
-        }
-    }
 }

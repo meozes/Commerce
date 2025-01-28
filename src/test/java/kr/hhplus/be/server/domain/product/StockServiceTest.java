@@ -52,14 +52,14 @@ class StockServiceTest {
                 .build();
         itemList.add(item);
 
-        when(stockRepository.getStockWithLock(productId)).thenReturn(Optional.of(stock));
+        when(stockRepository.getStock(productId)).thenReturn(Optional.of(stock));
 
         // when
         stockService.validateAndDeductStock(itemList);
 
         // then
         assertEquals(17, stock.getRemainingStock());
-        verify(stockRepository).getStockWithLock(productId);
+        verify(stockRepository).getStock(productId);
         verify(stockRepository).save(stock);
     }
 
@@ -79,12 +79,12 @@ class StockServiceTest {
                 .build();
         itemList.add(item);
 
-        when(stockRepository.getStockWithLock(productId)).thenReturn(Optional.empty());
+        when(stockRepository.getStock(productId)).thenReturn(Optional.empty());
 
         // when & then
         assertThrows(NoSuchElementException.class,
                 () -> stockService.validateAndDeductStock(itemList));
-        verify(stockRepository).getStockWithLock(productId);
+        verify(stockRepository).getStock(productId);
     }
 
     @Test
@@ -105,14 +105,14 @@ class StockServiceTest {
                 .build();
         itemList.add(item);
 
-        when(stockRepository.getStockWithLock(productId)).thenReturn(Optional.of(stock));
+        when(stockRepository.getStock(productId)).thenReturn(Optional.of(stock));
 
         // when & then
         IllegalStateException exception = assertThrows(IllegalStateException.class,
                 () -> stockService.validateAndDeductStock(itemList));
 
         assertTrue(exception.getMessage().contains("상품의 재고가 부족합니다"));
-        verify(stockRepository).getStockWithLock(productId);
+        verify(stockRepository).getStock(productId);
         verify(stockRepository, never()).save(any(Stock.class));
     }
 }
