@@ -2,13 +2,9 @@ package kr.hhplus.be.server.domain.balance.usecase;
 
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.common.aop.annotation.Monitoring;
-import kr.hhplus.be.server.domain.balance.exception.OptimisticLockingFailureException;
 import kr.hhplus.be.server.domain.balance.validation.AmountValidator;
 import kr.hhplus.be.server.domain.balance.validation.UserIdValidator;
-import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.extern.slf4j.Slf4j;
-import org.hibernate.StaleObjectStateException;
-import org.springframework.orm.ObjectOptimisticLockingFailureException;
 import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.domain.balance.dto.BalanceInfo;
 import kr.hhplus.be.server.domain.balance.dto.BalanceQuery;
@@ -49,37 +45,33 @@ public class BalanceService {
     @Transactional
     public BalanceInfo chargeBalance(ChargeCommand command) {
 
-        try{
-            log.info("[잔액 충전 시작] userId={}, chargeAmount={}", command.getUserId(), command.getChargeAmount());
 
-            userIdValidator.validate(command.getUserId());
-            amountValidator.validateChargeAmount(command.getChargeAmount());
+        log.info("[잔액 충전 시작] userId={}, chargeAmount={}", command.getUserId(), command.getChargeAmount());
 
-            Balance balance = balanceRepository.getBalance(command.getUserId())
-                    .orElseGet(() -> createBalance(command.getUserId()));
+        userIdValidator.validate(command.getUserId());
+        amountValidator.validateChargeAmount(command.getChargeAmount());
 
-            Integer beforeBalance = balance.getBalance();
-            balance.charge(command.getChargeAmount());
-            Balance charged = balanceRepository.save(balance);
+        Balance balance = balanceRepository.getBalanceWithLock(command.getUserId())
+                .orElseGet(() -> createBalance(command.getUserId()));
 
-            historyRepository.saveHistory(
-                    beforeBalance,
-                    charged.getBalance(),
-                    charged.getId(),
-                    TransactionType.CHARGE,
-                    command.getChargeAmount()
-            );
+        Integer beforeBalance = balance.getBalance();
+        balance.charge(command.getChargeAmount());
+        Balance charged = balanceRepository.save(balance);
 
-            log.info("[잔액 충전 완료] userId={}, beforeBalance={}, afterBalance={}, chargeAmount={}",
-                    command.getUserId(),
-                    beforeBalance,
-                    charged.getBalance(),
-                    command.getChargeAmount());
-            return BalanceInfo.from(charged);
-        } catch(StaleObjectStateException | ObjectOptimisticLockingFailureException e) {
-            log.warn("충전 처리 중 낙관적 락 충돌 발생: userId={}", command.getUserId(), e);
-            throw new OptimisticLockingFailureException(ErrorCode.ALREADY_CHARGED.getMessage(), (ObjectOptimisticLockingFailureException) e);
-        }
+        historyRepository.saveHistory(
+                beforeBalance,
+                charged.getBalance(),
+                charged.getId(),
+                TransactionType.CHARGE,
+                command.getChargeAmount()
+        );
+
+        log.info("[잔액 충전 완료] userId={}, beforeBalance={}, afterBalance={}, chargeAmount={}",
+                command.getUserId(),
+                beforeBalance,
+                charged.getBalance(),
+                command.getChargeAmount());
+        return BalanceInfo.from(charged);
     }
 
     /**
@@ -90,37 +82,33 @@ public class BalanceService {
     @Transactional
     public BalanceInfo deductBalance(Long userId, Integer amount) {
 
-        try{
-            log.info("[잔고 차감 시작] userId={}, deductAmount={}", userId, amount);
 
-            userIdValidator.validate(userId);
-            amountValidator.validateDeductAmount(amount);
+        log.info("[잔고 차감 시작] userId={}, deductAmount={}", userId, amount);
 
-            Balance balance = balanceRepository.getBalance(userId)
-                    .orElseGet(() -> createBalance(userId));
+        userIdValidator.validate(userId);
+        amountValidator.validateDeductAmount(amount);
 
-            Integer beforeBalance = balance.getBalance();
-            balance.deduct(amount);
-            Balance deducted = balanceRepository.save(balance);
+        Balance balance = balanceRepository.getBalanceWithLock(userId)
+                .orElseGet(() -> createBalance(userId));
 
-            historyRepository.saveHistory(
-                    beforeBalance,
-                    deducted.getBalance(),
-                    deducted.getId(),
-                    TransactionType.USE,
-                    amount
-            );
+        Integer beforeBalance = balance.getBalance();
+        balance.deduct(amount);
+        Balance deducted = balanceRepository.save(balance);
 
-            log.info("[잔고 차감 완료] userId={}, beforeBalance={}, afterBalance={}, deductedAmount={}",
-                    userId,
-                    beforeBalance,
-                    deducted.getBalance(),
-                    amount);
-            return BalanceInfo.from(balance);
-        } catch(StaleObjectStateException | ObjectOptimisticLockingFailureException e) {
-            log.warn("잔고 금액 차감 처리 중 낙관적 락 충돌 발생: userId={}", userId, e);
-            throw new OptimisticLockingFailureException(ErrorCode.ALREADY_DEDUCTED.getMessage(), (ObjectOptimisticLockingFailureException) e);
-        }
+        historyRepository.saveHistory(
+                beforeBalance,
+                deducted.getBalance(),
+                deducted.getId(),
+                TransactionType.USE,
+                amount
+        );
+
+        log.info("[잔고 차감 완료] userId={}, beforeBalance={}, afterBalance={}, deductedAmount={}",
+                userId,
+                beforeBalance,
+                deducted.getBalance(),
+                amount);
+        return BalanceInfo.from(balance);
     }
 
     /**

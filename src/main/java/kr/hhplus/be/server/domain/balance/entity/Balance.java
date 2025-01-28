@@ -21,9 +21,6 @@ public class Balance extends BaseTimeEntity {
 
     private Integer balance;
 
-    @Version
-    private Long version;
-
 
     public void charge(Integer amount) {
         validateChargeAmount(amount);
