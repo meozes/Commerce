@@ -31,4 +31,6 @@ public interface IssuedCouponRepositoryImpl extends JpaRepository<IssuedCoupon, 
         saveAll(issuedCouponList);
     }
 
+    List<IssuedCoupon> findAllByCouponId(Long couponId);
+
 }

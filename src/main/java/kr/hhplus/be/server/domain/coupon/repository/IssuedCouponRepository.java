@@ -25,4 +25,6 @@ public interface IssuedCouponRepository {
     Optional<IssuedCoupon> getOrderIssuedCoupon(@Param("orderId") Long orderId, @Param("userId") Long userId);
 
     void saveAll(List<IssuedCoupon> issuedCouponList);
+
+    List<IssuedCoupon> findAllByCouponId(Long couponId);
 }
