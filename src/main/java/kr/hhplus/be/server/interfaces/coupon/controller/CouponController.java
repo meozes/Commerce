@@ -49,7 +49,7 @@ public class CouponController {
             @PathVariable("couponId") Long couponId
     ) {
         CouponCommand command = CouponCommand.of(userId, couponId);
-        CouponInfo info = couponControlService.issueCoupon(command);
+        CouponInfo info = couponControlService.requestCoupon(command);
         return ApiResponse.ok(CouponResponse.from(info));
     }
 }

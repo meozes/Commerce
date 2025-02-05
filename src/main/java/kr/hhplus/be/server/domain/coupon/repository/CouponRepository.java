@@ -8,10 +8,21 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.jpa.repository.QueryHints;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDate;
+import java.util.List;
 import java.util.Optional;
 
 public interface CouponRepository {
     Optional<Coupon> getCoupon(Long couponId);
+
+    @Query("SELECT c FROM Coupon c " +
+            "WHERE c.id IN :couponIds " +
+            "AND c.remainingQuantity > 0 " +
+            "AND c.dueDate >= :now")
+    List<Coupon> findAvailableCoupons(
+            @Param("couponIds") List<Long> couponIds,
+            @Param("now") LocalDate now
+    );
 
     Coupon save(Coupon coupon);
 
