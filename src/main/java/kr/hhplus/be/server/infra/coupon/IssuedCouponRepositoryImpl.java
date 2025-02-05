@@ -7,6 +7,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -24,5 +25,10 @@ public interface IssuedCouponRepositoryImpl extends JpaRepository<IssuedCoupon, 
     }
 
     Optional<IssuedCoupon> findByCouponId(Long couponId);
+
+    @Override
+    default void saveAll(List<IssuedCoupon> issuedCouponList) {
+        saveAll(issuedCouponList);
+    }
 
 }
