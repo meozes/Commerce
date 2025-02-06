@@ -1,7 +1,7 @@
 package kr.hhplus.be.server.interfaces.coupon.response;
 
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
-import kr.hhplus.be.server.domain.coupon.dto.CouponIssueInfo;
+import kr.hhplus.be.server.domain.coupon.dto.CouponIssueRequestInfo;
 import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
 import lombok.*;
 import org.springframework.data.domain.Page;
@@ -37,7 +37,7 @@ public class CouponResponse {
                 .build();
     }
 
-    public static CouponResponse from(CouponIssueInfo info){
+    public static CouponResponse from(CouponIssueRequestInfo info){
         return CouponResponse.builder()
                 .couponId(info.getCouponId())
                 .userId(info.getUserId())

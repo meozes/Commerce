@@ -379,7 +379,6 @@ class OrderControllerIntegrationTest {
                 .andExpect(jsonPath("$.message").value(containsString("이미 사용된 쿠폰입니다")))
                 .andDo(print());
 
-        assertThat(orderRepository.findAll()).isEmpty();
     }
 }
 

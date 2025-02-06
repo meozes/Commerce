@@ -7,13 +7,13 @@ import java.time.LocalDateTime;
 
 @Getter
 @Builder
-public class CouponIssueInfo {
+public class CouponIssueRequestInfo {
     private final Long userId;
     private final Long couponId;
     private final LocalDateTime requestedAt;
 
-    public static CouponIssueInfo of(Long userId, Long couponId, LocalDateTime requestedAt){
-        return CouponIssueInfo.builder()
+    public static CouponIssueRequestInfo of(Long userId, Long couponId, LocalDateTime requestedAt){
+        return CouponIssueRequestInfo.builder()
                 .userId(userId)
                 .couponId(couponId)
                 .requestedAt(requestedAt)

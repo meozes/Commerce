@@ -2,7 +2,7 @@ package kr.hhplus.be.server.domain.coupon.usecase;
 
 import kr.hhplus.be.server.common.aop.annotation.Monitored;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
-import kr.hhplus.be.server.domain.coupon.dto.CouponIssueInfo;
+import kr.hhplus.be.server.domain.coupon.dto.CouponIssueRequestInfo;
 import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
@@ -15,8 +15,8 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
-import java.util.NoSuchElementException;
 
 @Slf4j
 @Service
@@ -47,7 +47,7 @@ public class CouponControlService {
     /**
      * 쿠폰 발급 요청하기
      */
-    public CouponIssueInfo requestCoupon(CouponCommand command) {
+    public CouponIssueRequestInfo requestCoupon(CouponCommand command) {
         log.info("[쿠폰 발급 요청 시작] userId={}, couponId={}", command.getUserId(), command.getCouponId());
 
         String couponRequestKey = String.format(COUPON_REQUEST_KEY, command.getCouponId());
@@ -70,11 +70,12 @@ public class CouponControlService {
                     .add(couponRequestKey,
                             command.getUserId().toString(), //member
                             System.currentTimeMillis()); //score
-
+            redisTemplate.expire(couponRequestKey, Duration.ofHours(1)); // ttl
+            
             log.info("[쿠폰 발급 요청 완료] userId={}, couponId={}",
                     command.getUserId(), command.getCouponId());
 
-            return CouponIssueInfo.builder()
+            return CouponIssueRequestInfo.builder()
                     .userId(command.getUserId())
                     .couponId(command.getCouponId())
                     .requestedAt(LocalDateTime.now())

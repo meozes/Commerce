@@ -5,12 +5,14 @@ import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
 import kr.hhplus.be.server.domain.coupon.type.CouponStatusType;
+import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.data.redis.core.ZSetOperations;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -51,6 +53,9 @@ public class CouponScheduler {
         for (Coupon coupon : availableCoupons) {
             try {
                 issueCoupon(coupon);
+            } catch (IllegalStateException e) {
+                log.error("[쿠폰 재고 소진으로 발급 실패] couponId={}, error={}",
+                        coupon.getId(), e.getMessage());
             } catch (Exception e) {
                 log.error("[쿠폰 발급 처리 중 오류 발생] couponId={}, error={}",
                         coupon.getId(), e.getMessage());
@@ -58,18 +63,20 @@ public class CouponScheduler {
         }
     }
 
+    @Transactional
     public void issueCoupon(Coupon coupon) {
         String couponRequestKey = String.format(COUPON_REQUEST_KEY, coupon.getId());
         String couponIssuedKey = String.format(COUPON_ISSUED_KEY, coupon.getId());
 
         // 1. 발급 가능 수량 계산
         long availableQuantity = coupon.getRemainingQuantity();
-        if (availableQuantity <= 0) return;
+        if (availableQuantity <= 0) {
+            throw new IllegalStateException(ErrorCode.COUPON_OUT_OF_STOCK.getMessage());
+        }
 
         // 2. 발급 대상자 조회
         Set<ZSetOperations.TypedTuple<String>> requests =
                 redisTemplate.opsForZSet().popMin(couponRequestKey, availableQuantity);
-
         if (requests == null || requests.isEmpty()) return;
 
         // 3. 쿠폰 발급 처리

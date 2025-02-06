@@ -1,11 +1,10 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
-import kr.hhplus.be.server.domain.coupon.dto.CouponIssueInfo;
+import kr.hhplus.be.server.domain.coupon.dto.CouponIssueRequestInfo;
 import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
 import kr.hhplus.be.server.domain.coupon.validation.CouponValidator;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -58,7 +57,7 @@ class CouponControlServiceTest {
         when(zSetOperations.add(anyString(), anyString(), anyDouble())).thenReturn(true);
 
         // when
-        CouponIssueInfo result = couponControlService.requestCoupon(command);
+        CouponIssueRequestInfo result = couponControlService.requestCoupon(command);
 
         // then
         assertThat(result.getUserId()).isEqualTo(userId);
