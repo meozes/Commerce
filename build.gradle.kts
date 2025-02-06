@@ -42,6 +42,8 @@ dependencies {
 
 	// Redis
 	implementation("org.redisson:redisson-spring-boot-starter:3.27.1")
+	implementation("org.springframework.boot:spring-boot-starter-data-redis")
+	implementation("io.lettuce:lettuce-core:6.3.1.RELEASE")
 
 	// Lombok
 	implementation("org.projectlombok:lombok")

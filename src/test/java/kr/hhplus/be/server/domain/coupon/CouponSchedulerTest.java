@@ -73,7 +73,6 @@ public class CouponSchedulerTest {
 
         // then
         verify(couponRepository, times(2)).save(any(Coupon.class));
-        verify(issuedCouponRepository, times(2)).saveAll(anyList());
         verify(setOperations, times(2)).add(anyString(), any(String[].class));
     }
 

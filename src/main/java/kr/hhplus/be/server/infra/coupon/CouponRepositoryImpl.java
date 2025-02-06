@@ -9,6 +9,7 @@ import java.util.Optional;
 
 @Repository
 public interface CouponRepositoryImpl extends JpaRepository<Coupon, Long>, CouponRepository {
+
     @Override
     default Optional<Coupon> getCoupon(Long couponId) {return findById(couponId);}
 
