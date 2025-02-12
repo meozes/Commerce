@@ -3,7 +3,9 @@ package kr.hhplus.be.server.infra.order;
 import com.querydsl.core.types.Projections;
 import com.querydsl.jpa.impl.JPAQueryFactory;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
+import kr.hhplus.be.server.domain.order.entity.QOrder;
 import kr.hhplus.be.server.domain.order.repository.OrderItemRepository;
+import kr.hhplus.be.server.domain.order.type.OrderStatusType;
 import kr.hhplus.be.server.domain.product.dto.ProductRankInfo;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Repository;
@@ -48,7 +50,12 @@ public class OrderItemRepositoryImpl implements OrderItemRepository {
                         QOrderItem.orderItem.quantity.sum(),
                         QOrderItem.orderItem.productPrice))
                 .from(QOrderItem.orderItem)
-                .where(QOrderItem.orderItem.createdAt.between(startDateTime, endDateTime))
+                .join(QOrder.order)
+                    .on(QOrderItem.orderItem.order.id.eq(QOrder.order.id))
+                .where(
+                        QOrder.order.createdAt.between(startDateTime, endDateTime),
+                        QOrder.order.orderStatus.eq(OrderStatusType.COMPLETED)
+                )
                 .groupBy(QOrderItem.orderItem.productId,
                         QOrderItem.orderItem.productName,
                         QOrderItem.orderItem.productPrice)
