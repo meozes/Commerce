@@ -6,6 +6,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.List;
 import java.util.Optional;
 
 
@@ -22,4 +23,6 @@ public interface IssuedCouponRepository {
 
     @Query("SELECT ic FROM IssuedCoupon ic WHERE ic.orderId = :orderId AND ic.userId = :userId")
     Optional<IssuedCoupon> getOrderIssuedCoupon(@Param("orderId") Long orderId, @Param("userId") Long userId);
+
+    List<IssuedCoupon> findAllByCouponId(Long couponId);
 }

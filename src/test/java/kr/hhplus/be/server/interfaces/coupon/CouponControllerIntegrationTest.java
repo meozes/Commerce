@@ -11,9 +11,11 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageRequest;
+import org.springframework.boot.test.context.TestConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.DynamicPropertyRegistry;
 import org.springframework.test.context.DynamicPropertySource;
@@ -26,15 +28,6 @@ import org.testcontainers.junit.jupiter.Testcontainers;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.CountDownLatch;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.concurrent.TimeUnit;
-
-import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -67,6 +60,7 @@ class CouponControllerIntegrationTest {
         registry.add("spring.datasource.username", mysql::getUsername);
         registry.add("spring.datasource.password", mysql::getPassword);
     }
+
 
     @BeforeEach
     void setUp() {
@@ -141,56 +135,6 @@ class CouponControllerIntegrationTest {
     }
 
     @Test
-    @DisplayName("쿠폰 발급 API - 쿠폰을 정상적으로 발급한다")
-    void issueCoupon() throws Exception {
-        // given
-        Long userId = 10L;
-        Optional<Coupon> couponOptional = couponRepository.getCoupon(savedCouponId); // setUp에서 생성한 쿠폰의 ID
-        Coupon coupon = couponOptional.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
-
-        // when
-        ResultActions result = mockMvc.perform(
-                MockMvcRequestBuilders
-                        .post("/api/coupons/{userId}/{couponId}", userId, coupon.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-        );
-
-        // then
-        result.andExpect(status().isOk())
-                .andExpect(jsonPath("$.code").value(200))
-                .andExpect(jsonPath("$.status").value("OK"))
-                .andExpect(jsonPath("$.data.couponName").value("1000원 할인 쿠폰"))
-                .andExpect(jsonPath("$.data.userId").value(userId))
-                .andExpect(jsonPath("$.data.discountAmount").value(1000))
-                .andExpect(jsonPath("$.data.couponStatus").value("NEW"))
-                .andDo(print());
-
-        // DB 검증
-        Optional<Coupon> updatedOptionalCoupon = couponRepository.getCoupon(coupon.getId());
-        Coupon updatedCoupon = updatedOptionalCoupon.orElseThrow(() -> new RuntimeException("쿠폰을 찾을 수 없습니다."));
-        assertThat(updatedCoupon.getRemainingQuantity()).isEqualTo(99);
-    }
-
-    @Test
-    @DisplayName("쿠폰 발급 API - 존재하지 않는 쿠폰 발급 시 NoSuchElementException 예외가 발생한다")
-    void issueCoupon_WithNonExistentCoupon() throws Exception {
-        // given
-        Long userId = 1L;
-        Long nonExistentCouponId = 999L;
-
-        // when
-        ResultActions result = mockMvc.perform(
-                MockMvcRequestBuilders
-                        .post("/api/coupons/{userId}/{couponId}", userId, nonExistentCouponId)
-                        .contentType(MediaType.APPLICATION_JSON)
-        );
-
-        // then
-        result.andExpect(status().isNotFound())
-                .andDo(print());
-    }
-
-    @Test
     @DisplayName("쿠폰 발급 API - 잘못된 사용자 ID로 쿠폰 발급 시 INVALID_USER_ID 예외가 발생한다")
     void issueCoupon_WithInvalidUserId() throws Exception {
         // given
@@ -209,29 +153,4 @@ class CouponControllerIntegrationTest {
                 .andDo(print());
     }
 
-    @Test
-    @DisplayName("쿠폰 발급 API - 수량이 모두 소진된 쿠폰 발급 시 COUPON_OUT_OF_STOCK 예외가 발생한다")
-    void issueCoupon_WithNoQuantity() throws Exception {
-        // given
-        Long userId = 1L;
-        Coupon coupon = Coupon.builder()
-                .couponName("수량 없는 쿠폰")
-                .discountAmount(1000)
-                .originalQuantity(0)
-                .remainingQuantity(0)
-                .dueDate(LocalDate.now().plusDays(30))
-                .build();
-        couponRepository.save(coupon);
-
-        // when
-        ResultActions result = mockMvc.perform(
-                MockMvcRequestBuilders
-                        .post("/api/coupons/{userId}/{couponId}", userId, coupon.getId())
-                        .contentType(MediaType.APPLICATION_JSON)
-        );
-
-        // then
-        result.andExpect(status().isBadRequest())
-                .andDo(print());
-    }
 }

@@ -31,10 +31,10 @@ public class Coupon extends BaseTimeEntity {
 
     private LocalDate dueDate;
 
-    public void decreaseRemainingQuantity() {
+    public void decreaseRemainingQuantity(int quantity) {
         if (this.remainingQuantity <= 0) {
             throw new IllegalStateException(ErrorCode.COUPON_OUT_OF_STOCK.getMessage());
         }
-        this.remainingQuantity--;
+        this.remainingQuantity -= quantity;
     }
 }

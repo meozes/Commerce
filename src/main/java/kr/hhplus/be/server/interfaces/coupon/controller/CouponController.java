@@ -5,6 +5,7 @@ import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import kr.hhplus.be.server.domain.coupon.dto.CouponCommand;
 import kr.hhplus.be.server.domain.coupon.dto.CouponInfo;
+import kr.hhplus.be.server.domain.coupon.dto.CouponIssueRequestInfo;
 import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
 import kr.hhplus.be.server.domain.coupon.usecase.CouponFindService;
 import kr.hhplus.be.server.interfaces.common.response.ApiResponse;
@@ -49,7 +50,7 @@ public class CouponController {
             @PathVariable("couponId") Long couponId
     ) {
         CouponCommand command = CouponCommand.of(userId, couponId);
-        CouponInfo info = couponControlService.issueCoupon(command);
+        CouponIssueRequestInfo info = couponControlService.requestCoupon(command);
         return ApiResponse.ok(CouponResponse.from(info));
     }
 }
