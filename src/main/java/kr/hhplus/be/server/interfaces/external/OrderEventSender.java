@@ -3,6 +3,7 @@ package kr.hhplus.be.server.interfaces.external;
 
 import kr.hhplus.be.server.common.aop.annotation.Retry;
 import kr.hhplus.be.server.domain.order.entity.Order;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;

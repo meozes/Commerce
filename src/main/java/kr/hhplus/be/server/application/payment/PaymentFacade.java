@@ -2,6 +2,7 @@ package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.domain.balance.exception.NotEnoughBalanceException;
 import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
+import kr.hhplus.be.server.domain.event.OrderCompletedEvent;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
@@ -18,6 +19,7 @@ import kr.hhplus.be.server.domain.payment.usecase.PaymentService;
 import kr.hhplus.be.server.domain.product.usecase.StockService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,10 +38,10 @@ public class PaymentFacade {
     private final CouponControlService couponControlService;
     private final OrderValidator orderValidator;
     private final OrderEventSender orderEventSender;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
     public PaymentInfo createPayment(PaymentCommand command) {
-
         log.info("[결제 프로세스 시작] orderId={}, userId={}, amount={}",
                 command.getOrderId(),
                 command.getUserId(),
@@ -92,11 +94,7 @@ public class PaymentFacade {
                 completedPayment.getId());
 
         // 6. 외부 데이터 플랫폼으로 주문 정보 전송
-        try {
-            orderEventSender.send(updatedOrder);
-        } catch (RuntimeException | InterruptedException e) {
-            log.error(ErrorCode.ORDER_SYNC_FAILED.getMessage(), e);
-        }
+        eventPublisher.publishEvent(OrderCompletedEvent.from(updatedOrder));
 
         return PaymentInfo.from(completedPayment);
     }
