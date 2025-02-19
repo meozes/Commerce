@@ -1,13 +1,12 @@
-package kr.hhplus.be.server.interfaces.external;
+package kr.hhplus.be.server.application.event;
 
 
+import org.springframework.transaction.annotation.Transactional;
 import kr.hhplus.be.server.common.aop.annotation.Retry;
 import kr.hhplus.be.server.domain.order.entity.Order;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataAccessException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Propagation;
-import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.ResourceAccessException;
 
 import java.util.concurrent.TimeoutException;
@@ -27,8 +26,8 @@ public class OrderEventSender {
             }
     )
     @Transactional(propagation = Propagation.REQUIRES_NEW)
-    public void send(Order order) throws InterruptedException {
-        if (order == null){
+    public void send(OrderDataPlatformEvent event) throws InterruptedException {
+        if (event == null){
             throw new RuntimeException("전송 대상 없음");
         }
     }
