@@ -1,6 +1,6 @@
 package kr.hhplus.be.server.interfaces.external;
 
-import kr.hhplus.be.server.domain.event.OrderCompletedEvent;
+import kr.hhplus.be.server.domain.order.event.OrderCompletedEvent;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import lombok.RequiredArgsConstructor;
