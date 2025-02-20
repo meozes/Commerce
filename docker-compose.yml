@@ -24,11 +24,19 @@ services:
       - MYSQL_DATABASE=sales_campaign
     volumes:
       - mysql-8-data:/bitnami/mysql/data
+  redis:
+    image: redis:7.0
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+    command: redis-server --appendonly yes
 
 volumes:
   mysql-8-data:
   kafka-zookeeper-data:
   kafka-data:
+  redis-data:
 
 networks:
   default:

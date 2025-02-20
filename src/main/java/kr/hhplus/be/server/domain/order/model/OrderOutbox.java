@@ -1,10 +1,7 @@
 package kr.hhplus.be.server.domain.order.model;
 
 import jakarta.persistence.*;
-import lombok.AccessLevel;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 
 import java.time.LocalDateTime;
 
@@ -34,8 +31,10 @@ public class OrderOutbox {
     }
 
     @Builder
-    public OrderOutbox(Long userId) {
+    public OrderOutbox(String messageId, Long userId, Long orderId) {
+        this.messageId = messageId;
         this.userId = userId;
+        this.orderId = orderId;
         this.status = OutboxStatus.INIT;
         this.createdAt = LocalDateTime.now();
     }

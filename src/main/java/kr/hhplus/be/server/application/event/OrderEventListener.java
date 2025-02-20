@@ -25,6 +25,8 @@ public class OrderEventListener {
     public void saveOutbox(OrderCompletedEvent event) {
         try {
             OrderOutbox outbox = OrderOutbox.builder()
+                    .messageId(event.getMessageId())
+                    .orderId(event.getOrderId())
                     .userId(event.getUserId())
                     .build();
             outboxRepository.save(outbox);
