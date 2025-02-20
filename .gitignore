@@ -39,3 +39,4 @@ out/
 data
 full-log.txt
 logs/application.log
+*.log

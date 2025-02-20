@@ -1,6 +1,7 @@
 package kr.hhplus.be.server.domain.coupon;
 
 import kr.hhplus.be.server.domain.coupon.entity.Coupon;
+import kr.hhplus.be.server.domain.coupon.entity.IssuedCoupon;
 import kr.hhplus.be.server.domain.coupon.repository.CouponRepository;
 import kr.hhplus.be.server.domain.coupon.repository.IssuedCouponRepository;
 import kr.hhplus.be.server.domain.coupon.usecase.CouponScheduler;
@@ -11,10 +12,7 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.data.redis.core.DefaultTypedTuple;
-import org.springframework.data.redis.core.RedisTemplate;
-import org.springframework.data.redis.core.SetOperations;
-import org.springframework.data.redis.core.ZSetOperations;
+import org.springframework.data.redis.core.*;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -43,10 +41,14 @@ public class CouponSchedulerTest {
     @Mock
     private SetOperations<String, String> setOperations;
 
+    @Mock
+    private BoundZSetOperations<String, String> boundZSetOps;
+
     @BeforeEach
     void setUp() {
         when(redisTemplate.opsForZSet()).thenReturn(zSetOperations);
         when(redisTemplate.opsForSet()).thenReturn(setOperations);
+        when(redisTemplate.boundZSetOps(anyString())).thenReturn(boundZSetOps);
     }
 
     @Test
@@ -56,23 +58,36 @@ public class CouponSchedulerTest {
         Set<String> requestKeys = Set.of("coupon-1-requests", "coupon-2-requests");
         when(redisTemplate.keys(anyString())).thenReturn(requestKeys);
 
-        List<Coupon> coupons = List.of(
-                createCoupon(1L, 10),
-                createCoupon(2L, 5)
-        );
-        when(couponRepository.findAvailableCoupons(anyList(), any(LocalDate.class))).thenReturn(coupons);
-
-        Set<ZSetOperations.TypedTuple<String>> requests = Set.of(
+        Set<ZSetOperations.TypedTuple<String>> typedTuples = Set.of(
                 createTypedTuple("1", 100.0),
                 createTypedTuple("2", 200.0)
         );
-        when(zSetOperations.popMin(anyString(), anyLong())).thenReturn(requests);
+        when(zSetOperations.rangeWithScores(anyString(), anyLong(), anyLong()))
+                .thenReturn(typedTuples);
+
+        List<Coupon> coupons = List.of(
+                createCoupon(1L, 2),  // remainingQuantity를 2로 수정
+                createCoupon(2L, 2)   // remainingQuantity를 2로 수정
+        );
+        when(couponRepository.findAvailableCoupons(anyList(), any(LocalDate.class)))
+                .thenReturn(coupons);
+
+        // boundZSetOps 동작 설정
+        when(boundZSetOps.size()).thenReturn(2L);
+
+        // 각 쿠폰당 2개의 요청을 처리하도록 설정
+        when(boundZSetOps.popMin(1))
+                .thenReturn(Set.of(createTypedTuple("1", 100.0)))
+                .thenReturn(Set.of(createTypedTuple("2", 200.0)))
+                .thenReturn(Set.of(createTypedTuple("3", 300.0)))
+                .thenReturn(Set.of(createTypedTuple("4", 400.0)));
 
         // when
         scheduler.issueCoupons();
 
         // then
         verify(couponRepository, times(2)).save(any(Coupon.class));
+        verify(issuedCouponRepository, times(4)).save(any(IssuedCoupon.class));
         verify(setOperations, times(2)).add(anyString(), any(String[].class));
     }
 

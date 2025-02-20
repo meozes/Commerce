@@ -1,4 +1,4 @@
-package kr.hhplus.be.server.domain.event;
+package kr.hhplus.be.server.domain.order.event;
 
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.order.type.OrderStatusType;
@@ -10,6 +10,7 @@ import java.time.LocalDateTime;
 @Getter
 @Builder
 public class OrderCompletedEvent {
+    private String messageId;
     private final Long orderId;
     private final Long userId;
     private final OrderStatusType orderStatus;
@@ -17,6 +18,7 @@ public class OrderCompletedEvent {
 
     public static OrderCompletedEvent from(Order order) {
         return OrderCompletedEvent.builder()
+                .messageId(order.getId()+"-"+order.getUserId())
                 .orderId(order.getId())
                 .userId(order.getUserId())
                 .orderStatus(order.getOrderStatus())
