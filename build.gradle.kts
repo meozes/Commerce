@@ -73,11 +73,8 @@ dependencies {
 	// Filter
 	implementation("com.google.guava:guava:32.1.3-jre")
 
-
 	implementation("io.micrometer:micrometer-core")
 	implementation("io.micrometer:micrometer-registry-prometheus")
-
-
 }
 
 tasks.withType<Test> {

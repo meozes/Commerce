@@ -87,3 +87,16 @@ springdoc:
   default-produces-media-type: application/json
   paths-to-match:
     - /api/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
