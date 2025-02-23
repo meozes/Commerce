@@ -2,19 +2,17 @@ package kr.hhplus.be.server.application.payment;
 
 import kr.hhplus.be.server.domain.balance.exception.NotEnoughBalanceException;
 import kr.hhplus.be.server.domain.coupon.usecase.CouponControlService;
-import kr.hhplus.be.server.domain.event.OrderCompletedEvent;
+import kr.hhplus.be.server.domain.order.event.OrderCompletedEvent;
 import kr.hhplus.be.server.domain.order.entity.OrderItem;
 import kr.hhplus.be.server.domain.order.usecase.OrderControlService;
 import kr.hhplus.be.server.domain.order.usecase.OrderFindService;
 import kr.hhplus.be.server.domain.order.validation.OrderValidator;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
-import kr.hhplus.be.server.interfaces.external.OrderEventSender;
 import kr.hhplus.be.server.domain.balance.usecase.BalanceService;
 import kr.hhplus.be.server.domain.order.entity.Order;
 import kr.hhplus.be.server.domain.payment.dto.PaymentCommand;
 import kr.hhplus.be.server.domain.payment.dto.PaymentInfo;
 import kr.hhplus.be.server.domain.payment.entity.Payment;
-import kr.hhplus.be.server.domain.payment.type.PaymentStatusType;
 import kr.hhplus.be.server.domain.payment.usecase.PaymentService;
 import kr.hhplus.be.server.domain.product.usecase.StockService;
 import lombok.RequiredArgsConstructor;
@@ -37,7 +35,6 @@ public class PaymentFacade {
     private final StockService stockService;
     private final CouponControlService couponControlService;
     private final OrderValidator orderValidator;
-    private final OrderEventSender orderEventSender;
     private final ApplicationEventPublisher eventPublisher;
 
     @Transactional

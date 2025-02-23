@@ -45,6 +45,10 @@ dependencies {
 	implementation("org.springframework.boot:spring-boot-starter-data-redis")
 	implementation("io.lettuce:lettuce-core:6.3.1.RELEASE")
 
+	// Kafka
+	implementation("org.springframework.kafka:spring-kafka")
+	testImplementation("org.springframework.kafka:spring-kafka-test")
+
 	// Lombok
 	implementation("org.projectlombok:lombok")
 	compileOnly("org.projectlombok:lombok")
@@ -64,6 +68,7 @@ dependencies {
 	testImplementation("org.testcontainers:junit-jupiter")
 	testImplementation("org.testcontainers:mysql")
 	testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+	testImplementation("org.testcontainers:kafka")
 
 	// Filter
 	implementation("com.google.guava:guava:32.1.3-jre")
