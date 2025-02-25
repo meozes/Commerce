@@ -75,6 +75,8 @@ dependencies {
 
 	implementation("io.micrometer:micrometer-core")
 	implementation("io.micrometer:micrometer-registry-prometheus")
+	// build.gradle
+	implementation("com.fasterxml.jackson.datatype:jackson-datatype-jsr310")
 }
 
 tasks.withType<Test> {
