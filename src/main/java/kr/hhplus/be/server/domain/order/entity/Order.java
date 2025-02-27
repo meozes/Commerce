@@ -7,11 +7,11 @@ import lombok.*;
 
 @Entity
 @Table(
-        name = "orders",
-        indexes = @Index(
-                name = "idx_orders_created_status",
-                columnList = "created_at,order_status"
-        )
+        name = "orders"
+//        indexes = @Index(
+//                name = "idx_orders_created_status",
+//                columnList = "created_at,order_status"
+//        )
 )
 @Getter
 @Builder

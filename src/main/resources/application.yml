@@ -17,8 +17,7 @@ spring:
     generate-ddl: false
     show-sql: true
     hibernate:
-      ddl-auto: update
-    #    defer-datasource-initialization: true
+      ddl-auto: none
     properties:
       hibernate.timezone.default_storage: NORMALIZE_UTC
       hibernate.jdbc.time_zone: UTC
@@ -28,24 +27,32 @@ spring:
           batch_size: 50
           order_inserts: true
           order_updates: true
-
   redis:
-    redisson:
-      config: |
-        singleServerConfig:
-          idleConnectionTimeout: 10000
-          connectTimeout: 10000
-          timeout: 3000
-          retryAttempts: 3
-          retryInterval: 1500
-  data:
+    host: localhost
+    port: 6379
+  cache:
+    type: redis
     redis:
-      host: localhost
-      port: 6379
-
+      time-to-live: 10800000  # 3시간(밀리초 단위)
+#  defer-datasource-initialization: true
 #  sql:
 #    init:
 #      mode: always
+
+
+redis:
+  redisson:
+    config:
+      singleServerConfig:
+        idleConnectionTimeout: 10000
+        connectTimeout: 10000
+        timeout: 3000
+        retryAttempts: 3
+        retryInterval: 1500
+#  data:
+#    redis:
+#      host: localhost
+#      port: 6379
 
 rate:
   limit:
@@ -55,6 +62,8 @@ logging:
   level:
     root: INFO
     kr.hhplus.be.server.common: DEBUG
+    org.springframework.cache: TRACE
+    org.springframework.data.redis: DEBUG
   file:
     name: ./logs/application.log
   logback:
@@ -87,3 +96,16 @@ springdoc:
   default-produces-media-type: application/json
   paths-to-match:
     - /api/**
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: prometheus,health,info,metrics
+  endpoint:
+    health:
+      show-details: always
+  metrics:
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true

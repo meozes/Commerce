@@ -11,6 +11,7 @@ import kr.hhplus.be.server.domain.product.repository.StockRepository;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -66,20 +67,20 @@ public class ProductService {
                 ProductInfo.of(product, stockMap.get(product.getId())));
     }
 
-    /**
-     * 상품 존재 여부 확인
-     */
-    public void getOrderProduct(List<OrderItemCommand> orderItems) {
-        orderItems.forEach(item -> {
-                    ProductSearch productSearch = ProductSearch.of(item.getProductId());
-                    getProduct(productSearch);
-                });
-    }
+/**
+ * 상품 존재 여부 확인
+ */
+public void getOrderProduct(List<OrderItemCommand> orderItems) {
+    orderItems.forEach(item -> {
+        ProductSearch productSearch = ProductSearch.of(item.getProductId());
+        getProduct(productSearch);
+    });
+}
 
-    public void validateProducts(List<OrderItemCommand> orderItems) {
-        orderItems.forEach(item -> {
-            productRepository.getProduct(item.getProductId())
-                    .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_NOT_FOUND.getMessage()));
-        });
-    }
+public void validateProducts(List<OrderItemCommand> orderItems) {
+    orderItems.forEach(item -> {
+        productRepository.getProduct(item.getProductId())
+                .orElseThrow(() -> new NoSuchElementException(ErrorCode.PRODUCT_NOT_FOUND.getMessage()));
+    });
+}
 }

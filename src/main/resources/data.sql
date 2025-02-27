@@ -80,3 +80,197 @@
 --     -- 사용자 2의 결제들
 --     (4, 2, 1290000, 'COMPLETED', '2024-01-02 11:21:00', '2024-01-02 11:21:00'),
 --     (5, 2, 800000, 'FAILED', '2024-01-03 14:31:00', '2024-01-03 14:31:00');
+
+---- 만건
+--SET SESSION cte_max_recursion_depth = 10000;
+--
+--DELETE FROM stock;
+--
+---- 1. Product 데이터 삽입
+--INSERT INTO product (product_name, price, created_at, updated_at)
+--WITH RECURSIVE products AS (
+--    SELECT
+--        0 AS id,
+--        0 AS product_name,
+--        1000 + FLOOR(RAND() * 100000) AS price
+--    UNION ALL
+--    SELECT
+--        id + 1,
+--        id + 1,
+--        1000 + FLOOR(RAND() * 100000)
+--    FROM products
+--    WHERE id < 9999
+--)
+--SELECT product_name, price, NOW(), NOW() FROM products;
+--
+---- 2. Stock 데이터 삽입
+--INSERT INTO stock (product_id, origin_stock, remaining_stock, created_at, updated_at)
+--WITH RECURSIVE stocks AS (
+--    SELECT
+--        1 AS product_id,
+--        100 + FLOOR(RAND() * 900) AS stock_amount
+--    UNION ALL
+--    SELECT
+--        product_id + 1,
+--        100 + FLOOR(RAND() * 900)
+--    FROM stocks
+--    WHERE product_id < 10000
+--)
+--SELECT product_id, stock_amount, stock_amount, NOW(), NOW() FROM stocks;
+
+
+--SET SESSION cte_max_recursion_depth = 100000;
+--
+---- 외래 키 제약조건 일시적으로 비활성화
+--SET FOREIGN_KEY_CHECKS = 0;
+--
+---- 테이블 비우기
+--TRUNCATE TABLE stock;
+--TRUNCATE TABLE product;
+--
+---- 1. Product 데이터 삽입 - AUTO_INCREMENT 컬럼이 있어도 직접 ID 설정
+--ALTER TABLE product AUTO_INCREMENT = 1;
+--INSERT INTO product (id, product_name, price, created_at, updated_at)
+--WITH RECURSIVE products AS (
+--    SELECT
+--        1 AS id,
+--        1 AS product_name,
+--        1000 + FLOOR(RAND() * 100000) AS price
+--    UNION ALL
+--    SELECT
+--        id + 1,
+--        id + 1,
+--        1000 + FLOOR(RAND() * 100000)
+--    FROM products
+--    WHERE id < 100000
+--)
+--SELECT id, product_name, price, NOW(), NOW() FROM products;
+--
+---- 2. Stock 데이터 삽입
+--INSERT INTO stock (product_id, origin_stock, remaining_stock, created_at, updated_at)
+--SELECT
+--    id,
+--    100 + FLOOR(RAND() * 900),
+--    100 + FLOOR(RAND() * 900),
+--    NOW(),
+--    NOW()
+--FROM
+--    product;
+--
+---- 외래 키 제약조건 다시 활성화
+--SET FOREIGN_KEY_CHECKS = 1;
+
+--SET SESSION cte_max_recursion_depth = 100000;
+--
+---- 먼저 orders 테이블에 데이터 생성
+--INSERT INTO orders
+--    (user_id, original_amount, final_amount, discount_amount, order_status, created_at, updated_at)
+--SELECT
+--    FLOOR(1 + RAND() * 100) as user_id, -- 1-100 사이의 유저 ID
+--    FLOOR(50000 + RAND() * 450000) as original_amount, -- 50000-500000 사이의 원래 금액
+--    FLOOR(50000 + RAND() * 450000) as final_amount,
+--    FLOOR(RAND() * 50000) as discount_amount, -- 0-50000 사이의 할인 금액
+--    ELT(FLOOR(1 + RAND() * 3), 'COMPLETED', 'CANCELED', 'COMPLETED') as order_status, -- COMPLETED가 더 많게
+--    DATE_ADD('2025-01-01', INTERVAL FLOOR(RAND() * 43) DAY) as created_at,
+--    DATE_ADD('2025-01-01', INTERVAL FLOOR(RAND() * 43) DAY) as updated_at
+--FROM
+--    information_schema.columns c1,
+--    (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) c2,
+--    (SELECT 1 UNION SELECT 2) c3
+--LIMIT 1000;
+--
+--INSERT INTO orders
+--    (user_id, original_amount, final_amount, discount_amount, order_status, created_at, updated_at)
+--SELECT
+--    FLOOR(1 + RAND() * 1000) as user_id, -- 1-1000 사이의 유저 ID
+--    FLOOR(50000 + RAND() * 450000) as original_amount,
+--    FLOOR(50000 + RAND() * 450000) as final_amount,
+--    FLOOR(RAND() * 50000) as discount_amount,
+--    'COMPLETED' as order_status, -- COMPLETED 상태만 생성
+--    DATE_ADD('2025-01-01', INTERVAL FLOOR(RAND() * 43) DAY) as created_at,
+--    DATE_ADD('2025-01-01', INTERVAL FLOOR(RAND() * 43) DAY) as updated_at
+--FROM
+--    information_schema.columns c1,
+--    (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) c2,
+--    (SELECT 1 UNION SELECT 2 UNION SELECT 3 UNION SELECT 4 UNION SELECT 5) c3
+--LIMIT 10000;  -- 약 10000개의 COMPLETED 주문 생성
+--
+---- 모든 주문에 대해 각각 1-5개의 상품 추가 (평균 약 3개)
+---- 첫 번째 INSERT: 모든 주문에 대해 최소 1개의 상품 항목 추가
+--INSERT INTO order_item
+--    (order_id, product_id, product_name, quantity, product_price, total_price, created_at, updated_at)
+--SELECT
+--    o.id as order_id,
+--    FLOOR(1 + RAND() * 20) as product_id,
+--    CONCAT('상품', FLOOR(1 + RAND() * 20)) as product_name,
+--    FLOOR(1 + RAND() * 5) as quantity,
+--    FLOOR(10000 + RAND() * 90000) as product_price,
+--    FLOOR(1 + RAND() * 5) * FLOOR(10000 + RAND() * 90000) as total_price,
+--    o.created_at,
+--    o.created_at as updated_at
+--FROM
+--    orders o;
+--
+---- 두 번째 INSERT: 약 80%의 주문에 대해 추가 상품 항목 추가
+--INSERT INTO order_item
+--    (order_id, product_id, product_name, quantity, product_price, total_price, created_at, updated_at)
+--SELECT
+--    o.id as order_id,
+--    FLOOR(1 + RAND() * 20) as product_id,
+--    CONCAT('상품', FLOOR(1 + RAND() * 20)) as product_name,
+--    FLOOR(1 + RAND() * 5) as quantity,
+--    FLOOR(10000 + RAND() * 90000) as product_price,
+--    FLOOR(1 + RAND() * 5) * FLOOR(10000 + RAND() * 90000) as total_price,
+--    o.created_at,
+--    o.created_at as updated_at
+--FROM
+--    orders o
+--WHERE RAND() < 0.8;  -- 약 80%의 주문에 대해서만 두 번째 상품 추가
+--
+---- 세 번째 INSERT: 약 60%의 주문에 대해 추가 상품 항목 추가
+--INSERT INTO order_item
+--    (order_id, product_id, product_name, quantity, product_price, total_price, created_at, updated_at)
+--SELECT
+--    o.id as order_id,
+--    FLOOR(1 + RAND() * 20) as product_id,
+--    CONCAT('상품', FLOOR(1 + RAND() * 20)) as product_name,
+--    FLOOR(1 + RAND() * 5) as quantity,
+--    FLOOR(10000 + RAND() * 90000) as product_price,
+--    FLOOR(1 + RAND() * 5) * FLOOR(10000 + RAND() * 90000) as total_price,
+--    o.created_at,
+--    o.created_at as updated_at
+--FROM
+--    orders o
+--WHERE RAND() < 0.6;  -- 약 60%의 주문에 대해서만 세 번째 상품 추가
+--
+---- 네 번째 INSERT: 약 30%의 주문에 대해 추가 상품 항목 추가
+--INSERT INTO order_item
+--    (order_id, product_id, product_name, quantity, product_price, total_price, created_at, updated_at)
+--SELECT
+--    o.id as order_id,
+--    FLOOR(1 + RAND() * 20) as product_id,
+--    CONCAT('상품', FLOOR(1 + RAND() * 20)) as product_name,
+--    FLOOR(1 + RAND() * 5) as quantity,
+--    FLOOR(10000 + RAND() * 90000) as product_price,
+--    FLOOR(1 + RAND() * 5) * FLOOR(10000 + RAND() * 90000) as total_price,
+--    o.created_at,
+--    o.created_at as updated_at
+--FROM
+--    orders o
+--WHERE RAND() < 0.3;  -- 약 30%의 주문에 대해서만 네 번째 상품 추가
+--
+---- 다섯 번째 INSERT: 약 10%의 주문에 대해 추가 상품 항목 추가
+--INSERT INTO order_item
+--    (order_id, product_id, product_name, quantity, product_price, total_price, created_at, updated_at)
+--SELECT
+--    o.id as order_id,
+--    FLOOR(1 + RAND() * 20) as product_id,
+--    CONCAT('상품', FLOOR(1 + RAND() * 20)) as product_name,
+--    FLOOR(1 + RAND() * 5) as quantity,
+--    FLOOR(10000 + RAND() * 90000) as product_price,
+--    FLOOR(1 + RAND() * 5) * FLOOR(10000 + RAND() * 90000) as total_price,
+--    o.created_at,
+--    o.created_at as updated_at
+--FROM
+--    orders o
+--WHERE RAND() < 0.1;  -- 약 10%의 주문에 대해서만 다섯 번째 상품 추가

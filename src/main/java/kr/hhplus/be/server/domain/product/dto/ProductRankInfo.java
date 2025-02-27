@@ -2,11 +2,14 @@ package kr.hhplus.be.server.domain.product.dto;
 
 import lombok.*;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 
 @Getter
 @Builder
-public class ProductRankInfo {
+public class ProductRankInfo implements Serializable {
+    private static final long serialVersionUID = 1L;
+
     private final Integer rank;
     private final Long productId;
     private final String productName;
@@ -15,6 +18,15 @@ public class ProductRankInfo {
 
     private LocalDate startDate;
     private LocalDate endDate;
+
+    // 기본 생성자 추가 (직렬화/역직렬화에 필요)
+    public ProductRankInfo() {
+        this.rank = null;
+        this.productId = null;
+        this.productName = null;
+        this.totalQuantitySold = null;
+        this.price = null;
+    }
 
     @Builder
     public ProductRankInfo(Integer rank, Long productId, String productName, Integer totalQuantitySold,
@@ -46,6 +58,18 @@ public class ProductRankInfo {
                 .price(this.price)
                 .startDate(this.startDate)
                 .endDate(this.endDate)
+                .build();
+    }
+
+    public ProductRankInfo withStartDateAndEndDate(LocalDate startDate, LocalDate endDate) {
+        return ProductRankInfo.builder()
+                .rank(this.rank)
+                .productId(this.productId)
+                .productName(this.productName)
+                .totalQuantitySold(this.totalQuantitySold)
+                .price(this.price)
+                .startDate(startDate)
+                .endDate(endDate)
                 .build();
     }
 }

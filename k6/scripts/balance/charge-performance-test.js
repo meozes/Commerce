@@ -1,5 +1,11 @@
 import http from 'k6/http';
 import { check, sleep } from 'k6';
+import { SharedArray } from 'k6/data';
+
+// 1000명의 사용자 ID 배열 생성 (1부터 1000까지)
+const users = new SharedArray('users', function() {
+    return Array.from({ length: 1000 }, (_, i) => i + 1);
+});
 
 export const options = {
   scenarios: {
@@ -7,9 +13,9 @@ export const options = {
       executor: 'ramping-vus',
       startVUs: 0,
       stages: [
-        { duration: '30s', target: 10 },  // 30초 동안 0->10 사용자로 증가
-        { duration: '1m', target: 10 },   // 1분 동안 10 사용자 유지
-        { duration: '30s', target: 0 },   // 30초 동안 10->0 사용자로 감소
+        { duration: '30s', target: 100 },   // 30초 동안 0->100 사용자로 증가
+        { duration: '1m', target: 100 },    // 1분 동안 100 사용자 유지
+        { duration: '30s', target: 0 },     // 30초 동안 100->0 사용자로 감소
       ],
     },
   },
@@ -20,14 +26,15 @@ export const options = {
 };
 
 const BASE_URL = 'http://localhost:8080';
-const USER_ID = 77;
-const ORDER_ID = 1;
 
 export default function () {
+  // 각 VU(Virtual User)는 1000명의 사용자 중 무작위로 한 명을 선택
+  const userId = users[Math.floor(Math.random() * users.length)];
+
   // 충전 요청
   const chargePayload = JSON.stringify({
-    userId: USER_ID,
-    amount: 1000  // JUnit 테스트와 동일한 금액으로 설정
+    userId: userId,
+    amount: 1000
   });
 
   const chargeResponse = http.post(
@@ -40,13 +47,13 @@ export default function () {
 
   check(chargeResponse, {
     'charge status is 200': (r) => r.status === 200,
-    'charge response has correct userId': (r) => r.json('data.userId') === USER_ID,
+    'charge response has correct userId': (r) => r.json('data.userId') === userId,
     'charge response has correct amount': (r) => r.json('data.chargedAmount') === 1000,
   });
 
   // 잔고 확인 요청
   const balanceResponse = http.get(
-    `${BASE_URL}/api/balance/${USER_ID}`,
+    `${BASE_URL}/api/balance/${userId}`,
     {
       headers: { 'Content-Type': 'application/json' },
     }
@@ -54,8 +61,8 @@ export default function () {
 
   check(balanceResponse, {
     'balance status is 200': (r) => r.status === 200,
-    'balance response has correct userId': (r) => r.json('data.userId') === USER_ID
+    'balance response has correct userId': (r) => r.json('data.userId') === userId
   });
 
-  sleep(0.1);  // 0.1초로 줄여서 더 빈번한 동시 요청 발생
+  sleep(0.1);
 }

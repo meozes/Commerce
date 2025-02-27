@@ -1,5 +1,8 @@
 package kr.hhplus.be.server.domain.product.entity;
 
+
+
+
 import jakarta.persistence.*;
 import kr.hhplus.be.server.domain.common.entity.BaseTimeEntity;
 import kr.hhplus.be.server.interfaces.common.type.ErrorCode;
@@ -7,6 +10,9 @@ import lombok.*;
 import lombok.extern.slf4j.Slf4j;
 
 @Entity
+@Table(indexes = {
+        @Index(name = "idx_stock_product_id", columnList = "product_id")
+})
 @Getter
 @Builder
 @AllArgsConstructor
